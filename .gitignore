@@ -1,0 +1,5 @@
+.DS_Store
+.nova/
+.pnpm-store/
+node_modules/
+dist/

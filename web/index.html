@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#080909">
+    <meta name="color-scheme" content="dark">
+    <title>Weekly Groovebox</title>
+    <link rel="stylesheet" href="./styles.css?v=12">
+  </head>
+  <body>
+    <div class="orientation-notice" role="status">
+      <span class="orientation-icon" aria-hidden="true">↻</span>
+      <strong>Turn your device sideways</strong>
+      <span>Weekly Groovebox is built for two-handed landscape play.</span>
+    </div>
+
+    <main class="groovebox" aria-label="Weekly Groovebox">
+      <header class="topbar panel">
+        <div class="brand" aria-label="Weekly Groovebox">
+          <span>Weekly</span>
+          <strong>Groovebox</strong>
+        </div>
+
+        <section class="pack-card is-loading" id="packCard" aria-label="This week's sample pack is loading">
+          <div class="pack-heading">
+            <span id="weekNumber">Week 31</span>
+            <span aria-hidden="true">•</span>
+            <strong id="packName">Broken Machinery</strong>
+          </div>
+          <div class="pack-meta">
+            <span class="availability-dot is-loading" id="availabilityDot" aria-hidden="true"></span>
+            <span>8 samples</span>
+            <span aria-hidden="true">•</span>
+            <span id="daysLeft">5 days left</span>
+          </div>
+        </section>
+
+        <div class="global-controls" id="globalControls" aria-label="Global controls"></div>
+
+        <div class="transport" aria-label="Transport">
+          <button class="transport-button play-button" id="playButton" type="button" aria-label="Play" aria-pressed="false">
+            <span class="play-icon" aria-hidden="true"></span>
+          </button>
+          <button class="transport-button stop-button" id="stopButton" type="button" aria-label="Stop" aria-pressed="false">
+            <span class="stop-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <button class="shift-button" id="shiftButton" type="button" aria-label="Hold Shift for secondary controls" aria-pressed="false">
+          Shift
+        </button>
+      </header>
+
+      <section class="track-bank panel" id="trackList" aria-label="Sample tracks"></section>
+
+      <section class="sequencer panel" aria-label="Sixteen-step sequencer">
+        <div class="step-grid" id="stepGrid"></div>
+      </section>
+
+      <section class="control-deck panel">
+        <div class="pattern-panel" aria-label="Pattern selector">
+          <div class="section-label">Pattern</div>
+          <div class="pattern-buttons" id="patternList"></div>
+          <div class="pattern-footer">
+            <span><strong id="patternLengthLabel">16</strong> steps</span>
+            <div class="pattern-position" id="patternPosition" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="parameter-panel">
+          <div class="selected-track-readout">
+            <span>Editing</span>
+            <strong id="selectedTrackName">1 · Kick</strong>
+          </div>
+          <div class="parameter-grid" id="parameterList" aria-label="Selected track controls"></div>
+        </div>
+      </section>
+
+      <div class="edit-bubble" id="editBubble" role="status" aria-live="polite"></div>
+      <div class="save-status" id="saveStatus" aria-live="polite">Saved locally</div>
+    </main>
+
+    <script type="module" src="./app.mjs?v=12"></script>
+  </body>
+</html>

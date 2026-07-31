@@ -1,0 +1,60 @@
+{
+  "id": "2026-week-31-broken-machinery",
+  "week": 31,
+  "name": "Broken Machinery",
+  "license": "CC0-1.0",
+  "tracks": [
+    {
+      "id": "kick",
+      "name": "Kick",
+      "kind": "drum",
+      "file": "./kick.wav"
+    },
+    {
+      "id": "snare",
+      "name": "Snare",
+      "kind": "drum",
+      "file": "./snare.wav"
+    },
+    {
+      "id": "hi-hat",
+      "name": "Hi-hat",
+      "kind": "drum",
+      "file": "./hi-hat.wav"
+    },
+    {
+      "id": "perc",
+      "name": "Perc",
+      "kind": "drum",
+      "file": "./perc.wav"
+    },
+    {
+      "id": "bass",
+      "name": "Bass",
+      "kind": "chromatic",
+      "rootNote": 48,
+      "file": "./bass.wav"
+    },
+    {
+      "id": "lead",
+      "name": "Lead",
+      "kind": "chromatic",
+      "rootNote": 48,
+      "file": "./lead.wav"
+    },
+    {
+      "id": "chord",
+      "name": "Chord",
+      "kind": "chromatic",
+      "rootNote": 48,
+      "file": "./chord.wav"
+    },
+    {
+      "id": "texture",
+      "name": "Texture",
+      "kind": "chromatic",
+      "rootNote": 48,
+      "file": "./texture.wav"
+    }
+  ]
+}
