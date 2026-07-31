@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node tools/build-site.mjs",
     "dev": "python3 -m http.server 4173 -d web",
+    "generate:icons": "node tools/generate-pwa-icons.mjs",
     "generate:samples": "node tools/generate-development-pack.mjs",
     "test": "node --test tests/*.test.mjs",
     "check": "node --check web/app.mjs && node --check web/audio-engine.mjs && node --check web/keyboard.mjs && node --check web/sequencer.mjs && node --check web/state.mjs && node --check web/layout.mjs && npm test"
