@@ -14,9 +14,36 @@
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
-    <link rel="stylesheet" href="./styles.css?v=13">
+    <link rel="stylesheet" href="./styles.css?v=14">
   </head>
-  <body>
+  <body class="pwa-checking">
+    <section class="install-gate" id="installGate" role="dialog" aria-modal="true" aria-labelledby="installTitle" hidden>
+      <img class="install-icon" src="./icons/icon-192.png" width="96" height="96" alt="">
+      <div class="install-brand" aria-hidden="true">
+        <span>Weekly</span>
+        <strong>Groovebox</strong>
+      </div>
+      <h1 id="installTitle">Install to play</h1>
+      <p class="install-copy">
+        On mobile, Weekly Groovebox runs only as an installed app. This gives the instrument the full screen and keeps browser controls out of your performance.
+      </p>
+
+      <ol class="install-steps install-steps-ios" data-install-instructions="ios">
+        <li>Tap Safari’s <strong>Share</strong> button.</li>
+        <li>Choose <strong>Add to Home Screen</strong>.</li>
+        <li>Open <strong>Groovebox</strong> from its new icon.</li>
+      </ol>
+
+      <ol class="install-steps install-steps-android" data-install-instructions="android">
+        <li>Open your browser menu.</li>
+        <li>Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>
+        <li>Open <strong>Groovebox</strong> from its new icon.</li>
+      </ol>
+
+      <button class="install-button" id="installButton" type="button" hidden>Install Groovebox</button>
+      <p class="install-status" id="installStatus" role="status" aria-live="polite"></p>
+    </section>
+
     <div class="orientation-notice" role="status">
       <span class="orientation-icon" aria-hidden="true">↻</span>
       <strong>Turn your device sideways</strong>
@@ -89,7 +116,7 @@
       <div class="save-status" id="saveStatus" aria-live="polite">Saved locally</div>
     </main>
 
-    <script type="module" src="./app.mjs?v=13"></script>
+    <script type="module" src="./bootstrap.mjs?v=1"></script>
     <script type="module" src="./pwa.mjs?v=1"></script>
   </body>
 </html>

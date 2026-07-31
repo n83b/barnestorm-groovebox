@@ -48,6 +48,123 @@ body {
   touch-action: manipulation;
 }
 
+.pwa-checking .groovebox,
+.pwa-checking .orientation-notice {
+  visibility: hidden;
+}
+
+.install-gate {
+  position: fixed;
+  z-index: 100;
+  inset: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: clamp(8px, 1.8vh, 16px);
+  padding: clamp(22px, 5vw, 54px);
+  overflow: auto;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 138, 0, 0.12), transparent 34%),
+    linear-gradient(145deg, #0b0c0c, #020303 72%);
+  text-align: center;
+  user-select: text;
+}
+
+.install-gate[hidden] {
+  display: none;
+}
+
+.pwa-install-required .groovebox,
+.pwa-install-required .orientation-notice {
+  display: none;
+}
+
+.install-icon {
+  width: clamp(68px, 15vh, 108px);
+  height: clamp(68px, 15vh, 108px);
+  border-radius: 22%;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.48);
+}
+
+.install-brand {
+  display: flex;
+  flex-direction: column;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: clamp(0.72rem, 1.6vh, 0.95rem);
+  line-height: 1;
+}
+
+.install-brand strong {
+  color: var(--orange);
+  font-size: 1.3em;
+}
+
+.install-gate h1 {
+  margin: 2px 0 0;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+  font-size: clamp(1.35rem, 4.2vh, 2.35rem);
+}
+
+.install-copy {
+  max-width: 560px;
+  margin: 0;
+  color: #c6c7c4;
+  font-size: clamp(0.86rem, 2.2vh, 1.08rem);
+  line-height: 1.45;
+}
+
+.install-steps {
+  display: grid;
+  gap: 7px;
+  max-width: 430px;
+  margin: 4px 0;
+  padding-left: 1.6em;
+  color: #b4b6b3;
+  text-align: left;
+  font-size: clamp(0.82rem, 2vh, 1rem);
+  line-height: 1.35;
+}
+
+.install-steps strong {
+  color: var(--orange-soft);
+}
+
+.install-gate[data-platform="ios"] .install-steps-android,
+.install-gate[data-platform="android"] .install-steps-ios {
+  display: none;
+}
+
+.install-button {
+  min-width: 190px;
+  min-height: 48px;
+  padding: 11px 22px;
+  border: 1px solid var(--orange);
+  border-radius: 8px;
+  background: linear-gradient(145deg, #ff981d, #e67600);
+  color: #090a0a;
+  box-shadow: 0 7px 24px rgba(255, 138, 0, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.install-button:disabled {
+  opacity: 0.6;
+}
+
+.install-status {
+  min-height: 1.3em;
+  margin: 0;
+  color: #74e58a;
+  font-size: 0.82rem;
+}
+
 button,
 input {
   color: inherit;

@@ -1,11 +1,13 @@
-const SHELL_CACHE = "weekly-groovebox-shell-v1";
+const SHELL_CACHE = "weekly-groovebox-shell-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./styles.css?v=13",
+  "./styles.css?v=14",
   "./app.mjs?v=13",
   "./audio-engine.mjs?v=10",
+  "./bootstrap.mjs?v=1",
+  "./install-mode.mjs",
   "./keyboard.mjs?v=2",
   "./layout.mjs",
   "./pwa.mjs?v=1",

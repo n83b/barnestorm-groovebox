@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import {
+  isAppleMobile,
+  isMobileDevice,
+  isStandalone,
+  shouldRequireMobileInstall
+} from "../web/install-mode.mjs";
 
 const webDirectory = new URL("../web/", import.meta.url);
 
@@ -41,5 +47,41 @@ test("links the manifest, Apple metadata and app-shell registration", async () =
   assert.match(html, /rel="manifest" href="\.\/manifest\.webmanifest"/);
   assert.match(html, /name="apple-mobile-web-app-capable" content="yes"/);
   assert.match(html, /rel="apple-touch-icon"/);
+  assert.match(html, /src="\.\/bootstrap\.mjs\?v=1"/);
+  assert.doesNotMatch(html, /src="\.\/app\.mjs/);
+  assert.match(html, /id="installGate"/);
   assert.match(registration, /serviceWorker\.register\("\.\/service-worker\.js"/);
+});
+
+test("requires Home Screen launch on mobile but not desktop", () => {
+  const iphone = {
+    userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)",
+    platform: "iPhone",
+    maxTouchPoints: 5
+  };
+  const ipad = {
+    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15)",
+    platform: "MacIntel",
+    maxTouchPoints: 5
+  };
+  const desktop = {
+    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+    platform: "MacIntel",
+    maxTouchPoints: 0
+  };
+
+  assert.equal(isAppleMobile(iphone), true);
+  assert.equal(isAppleMobile(ipad), true);
+  assert.equal(isMobileDevice(iphone), true);
+  assert.equal(isMobileDevice(ipad), true);
+  assert.equal(isMobileDevice(desktop), false);
+  assert.equal(shouldRequireMobileInstall({ mobile: true, standalone: false }), true);
+  assert.equal(shouldRequireMobileInstall({ mobile: true, standalone: true }), false);
+  assert.equal(shouldRequireMobileInstall({ mobile: false, standalone: false }), false);
+});
+
+test("recognises both standards-based and iOS standalone modes", () => {
+  assert.equal(isStandalone({ displayModeStandalone: true }), true);
+  assert.equal(isStandalone({ navigatorStandalone: true }), true);
+  assert.equal(isStandalone(), false);
 });

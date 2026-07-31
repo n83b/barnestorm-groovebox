@@ -48,8 +48,9 @@ Status: complete
 
 ## Milestone 4 — Offline PWA
 
-- Web app manifest and product icon set
-- Service-worker application shell
+- Web app manifest and product icon set — complete
+- Mobile installed-app launch gate — complete
+- Service-worker application shell — complete
 - IndexedDB weekly pack cache
 - Offline startup with the most recent downloaded pack
 - Pack download and integrity status

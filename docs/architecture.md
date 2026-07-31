@@ -83,6 +83,16 @@ The interface uses four fixed functional bands:
 
 Safe-area environment values protect the layout around rounded corners, the Dynamic Island and home indicator. A portrait-only orientation notice replaces the instrument on narrow phones.
 
+## Installed-app launch gate
+
+Mobile browsers load a small bootstrap module before the instrument. On iPhone,
+iPad and Android it starts the groovebox only when the page is running in
+standalone display mode. A normal mobile browser tab instead shows platform
+appropriate installation instructions, while desktop browsers remain available
+for development and keyboard use. Service-worker registration remains active on
+the installation screen so supported browsers can offer their native install
+prompt.
+
 ## Audio integration boundary
 
 `web/audio-engine.mjs` keeps Web Audio nodes behind a small interface:

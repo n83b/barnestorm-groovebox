@@ -939,6 +939,12 @@ No additional menus or dedicated pattern-length controls should be required.
 
 The primary target is an iPhone in landscape orientation.
 
+On iPhone, iPad and Android, the instrument must be launched from an installed
+Home Screen app. Opening it in a normal mobile browser tab shows a focused
+installation screen and does not initialise the instrument. Desktop browsers
+remain usable without installation for development, keyboard control and
+testing.
+
 Use the device safe-area insets so controls are not obscured by:
 
 - Dynamic Island
