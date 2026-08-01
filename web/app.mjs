@@ -31,6 +31,7 @@ import {
 } from "./pack-delivery.mjs?v=dev";
 import {
   getShiftModifierState,
+  isDoubleTap,
   shouldToggleTransportFromKeydown,
   toggleShiftModifier
 } from "./keyboard.mjs?v=dev";
@@ -884,8 +885,13 @@ function createKnob({
 }
 
 function bindTransport() {
+  const maximumTapDuration = 280;
+  const maximumTapMovement = 28;
   let stopPointerHeld = false;
   let stopKeyboardHeld = false;
+  let stopPointerTap = null;
+  let previousStopTap = null;
+  let ignoreNextStopClick = false;
 
   const updateStop = () => {
     stopHeld = stopLocked || stopPointerHeld || stopKeyboardHeld;
@@ -897,7 +903,7 @@ function bindTransport() {
       "aria-label",
       stopLocked
         ? "Clear lock active; select a sample or pattern to clear it, or press to unlock"
-        : "Stop, hold to clear automation, double click to lock"
+        : "Stop, hold to clear automation, double-tap or double-click to lock"
     );
   };
 
@@ -906,8 +912,13 @@ function bindTransport() {
     if (event.detail > 0) elements.playButton.blur();
   });
   elements.stopButton.addEventListener("click", () => {
+    if (ignoreNextStopClick) {
+      ignoreNextStopClick = false;
+      return;
+    }
     if (stopLocked) {
       stopLocked = false;
+      previousStopTap = null;
       updateStop();
     }
     stopPlayback();
@@ -915,26 +926,71 @@ function bindTransport() {
   elements.stopButton.addEventListener("pointerdown", (event) => {
     if (event.button !== 0 && event.pointerType === "mouse") return;
     event.preventDefault();
+    ignoreNextStopClick = false;
     elements.stopButton.setPointerCapture(event.pointerId);
-    if (stopLocked) stopLocked = false;
+    const wasLocked = stopLocked;
+    if (wasLocked) {
+      stopLocked = false;
+      previousStopTap = null;
+    }
+    stopPointerTap = {
+      pointerId: event.pointerId,
+      pointerType: event.pointerType,
+      startedAt: event.timeStamp,
+      startX: event.clientX,
+      startY: event.clientY,
+      wasLocked
+    };
     stopPointerHeld = true;
     updateStop();
     stopPlayback();
   });
-  const releaseStopPointer = (event) => {
+  const releaseStopPointer = (event, cancelled = false) => {
     if (
       elements.stopButton.hasPointerCapture?.(event.pointerId)
     ) {
       elements.stopButton.releasePointerCapture(event.pointerId);
     }
     stopPointerHeld = false;
+    const tap = stopPointerTap?.pointerId === event.pointerId ? stopPointerTap : null;
+    stopPointerTap = null;
+
+    if (cancelled) {
+      if (tap?.wasLocked) stopLocked = true;
+      previousStopTap = null;
+      updateStop();
+      return;
+    }
+
+    const tapMovement = tap
+      ? Math.hypot(event.clientX - tap.startX, event.clientY - tap.startY)
+      : Infinity;
+    const isTap = tap &&
+      event.timeStamp - tap.startedAt <= maximumTapDuration &&
+      tapMovement <= maximumTapMovement;
+
+    if (isTap && !tap.wasLocked) {
+      const currentTap = {
+        time: event.timeStamp,
+        x: event.clientX,
+        y: event.clientY,
+        pointerType: event.pointerType
+      };
+      if (isDoubleTap(previousStopTap, currentTap)) {
+        stopLocked = true;
+        previousStopTap = null;
+        ignoreNextStopClick = true;
+      } else {
+        previousStopTap = currentTap;
+      }
+    } else {
+      previousStopTap = null;
+    }
     updateStop();
   };
   elements.stopButton.addEventListener("pointerup", releaseStopPointer);
-  elements.stopButton.addEventListener("pointercancel", releaseStopPointer);
-  elements.stopButton.addEventListener("dblclick", () => {
-    stopLocked = true;
-    updateStop();
+  elements.stopButton.addEventListener("pointercancel", (event) => {
+    releaseStopPointer(event, true);
   });
   elements.stopButton.addEventListener("keydown", (event) => {
     if ((event.key === " " || event.key === "Enter") && !event.repeat) {
@@ -952,6 +1008,8 @@ function bindTransport() {
   elements.stopButton.addEventListener("blur", () => {
     stopPointerHeld = false;
     stopKeyboardHeld = false;
+    stopPointerTap = null;
+    previousStopTap = null;
     updateStop();
   });
   window.addEventListener("keydown", (event) => {

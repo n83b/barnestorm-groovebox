@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   getShiftModifierState,
+  isDoubleTap,
   shouldToggleTransportFromKeydown,
   toggleShiftModifier
 } from "../web/keyboard.mjs";
@@ -105,5 +106,32 @@ test("keeps the physical Shift key momentary alongside the button toggle", () =>
   assert.equal(
     getShiftModifierState({ buttonToggled: true, keyboardHeld: false }),
     true
+  );
+});
+
+test("recognises a touch double tap without relying on a dblclick event", () => {
+  const firstTap = { time: 1000, x: 120, y: 80, pointerType: "touch" };
+
+  assert.equal(
+    isDoubleTap(firstTap, { time: 1280, x: 132, y: 86, pointerType: "touch" }),
+    true
+  );
+  assert.equal(
+    isDoubleTap(firstTap, { time: 1400, x: 132, y: 86, pointerType: "touch" }),
+    false
+  );
+  assert.equal(
+    isDoubleTap(firstTap, { time: 1280, x: 170, y: 80, pointerType: "touch" }),
+    false
+  );
+});
+
+test("does not combine touch and mouse presses into one double tap", () => {
+  assert.equal(
+    isDoubleTap(
+      { time: 1000, x: 120, y: 80, pointerType: "touch" },
+      { time: 1200, x: 120, y: 80, pointerType: "mouse" }
+    ),
+    false
   );
 });

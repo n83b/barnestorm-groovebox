@@ -46,8 +46,9 @@ step values over the pattern track's saved knob positions before scheduling the
 audio nodes and any new sample voice. A lit base dot on a knob indicates that
 the parameter has automation on at least one step of the selected track and
 pattern. Holding Stop while moving that knob removes its automation from all
-steps of that track and pattern. Mouse users can double-click Stop to latch this
-clearing modifier and click it once to release the lock. While latched, selecting
+steps of that track and pattern. Double-tapping or double-clicking Stop latches
+this clearing modifier, and one press releases the lock. Pointer-level tap
+detection keeps this gesture reliable in installed mobile Safari. While latched, selecting
 a sample clears that track's sequence in the current pattern, and selecting a
 pattern clears all eight of its track sequences. These sequence clears preserve
 pattern lengths and saved knob positions.

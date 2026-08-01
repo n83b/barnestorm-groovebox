@@ -32,3 +32,25 @@ export function getShiftModifierState({ buttonToggled = false, keyboardHeld = fa
 export function toggleShiftModifier(buttonToggled) {
   return !buttonToggled;
 }
+
+export function isDoubleTap(
+  previousTap,
+  currentTap,
+  { maximumDelay = 360, maximumDistance = 28 } = {}
+) {
+  if (!previousTap || !currentTap) return false;
+  if (
+    previousTap.pointerType &&
+    currentTap.pointerType &&
+    previousTap.pointerType !== currentTap.pointerType
+  ) {
+    return false;
+  }
+
+  const delay = currentTap.time - previousTap.time;
+  const distance = Math.hypot(
+    currentTap.x - previousTap.x,
+    currentTap.y - previousTap.y
+  );
+  return delay > 0 && delay <= maximumDelay && distance <= maximumDistance;
+}

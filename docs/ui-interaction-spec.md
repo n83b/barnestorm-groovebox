@@ -217,10 +217,11 @@ To clear one parameter's automation:
 Hold Stop + move a selected-track knob = remove that knob's automation from every step
 ```
 
-Mouse users can double-click Stop to lock automation-clear mode, move one or
-more knobs without holding the button, then click Stop once to release the
-lock. While locked, the Stop button remains visibly active and displays
-`CLEAR`.
+Double-tap or double-click Stop to lock automation-clear mode, move one or more
+knobs without holding the button, then press Stop once to release the lock. The
+double-tap must be detected directly from pointer input so it works in an
+installed iPhone PWA without relying on the browser's `dblclick` event. While
+locked, the Stop button remains visibly active and displays `CLEAR`.
 
 While Stop lock is active:
 
@@ -1108,7 +1109,7 @@ Press Play
 Press Stop
 → Stop playback and reset the playhead
 
-Double-click Stop
+Double-tap or double-click Stop
 → Lock automation-clear mode; click Stop once to unlock
 
 Stop lock + tap sample selector
