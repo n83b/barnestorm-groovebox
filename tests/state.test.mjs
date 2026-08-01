@@ -241,21 +241,32 @@ test("creates four color-coded banks with eight numbered patterns each", () => {
   assert.deepEqual(PATTERN_NAMES.slice(8, 16), ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"]);
 });
 
-test("each bank remembers its independently selected numbered slot", () => {
+test("browsing banks does not select or queue a pattern", () => {
   const state = createInitialState();
   selectPattern(state, 5, false);
-  selectBank(state, 1, false);
-  assert.equal(state.selectedPattern, 8);
-
-  selectPattern(state, 10, false);
-  selectBank(state, 0, false);
-  assert.equal(state.selectedPattern, 5);
-
-  selectBank(state, 1, false);
+  selectBank(state, 1);
 
   assert.equal(state.selectedBank, 1);
-  assert.equal(state.selectedPattern, 10);
-  assert.equal(state.patterns[state.selectedPattern].name, "B3");
+  assert.equal(state.selectedPattern, 5);
+  assert.equal(state.queuedPattern, null);
+
+  selectBank(state, 2);
+
+  assert.equal(state.selectedBank, 2);
+  assert.equal(state.selectedPattern, 5);
+  assert.equal(state.queuedPattern, null);
+
+  selectPattern(state, 18, true);
+
+  assert.equal(state.selectedPattern, 5);
+  assert.equal(state.queuedPattern, 18);
+
+  selectBank(state, 3);
+  commitQueuedPattern(state);
+
+  assert.equal(state.selectedBank, 3);
+  assert.equal(state.selectedPattern, 18);
+  assert.equal(state.queuedPattern, null);
 });
 
 test("expands legacy eight-pattern projects into bank A without losing step data", () => {

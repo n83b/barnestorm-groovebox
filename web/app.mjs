@@ -638,21 +638,9 @@ function renderPatterns() {
     })
   );
   overflow.addEventListener("click", () => {
-    if (shiftHeld || stopLocked) {
-      state.selectedBank = nextBankIndex;
-      persistState();
-      renderPatterns();
-      return;
-    }
-
-    selectBank(state, nextBankIndex, isPlaying);
+    selectBank(state, nextBankIndex);
     persistState();
     renderPatterns();
-    if (!isPlaying) {
-      renderSteps();
-      renderParameters();
-      syncPatternAudioParameters();
-    }
   });
 
   elements.patternList.replaceChildren(...buttons, overflow);

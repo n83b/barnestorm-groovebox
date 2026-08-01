@@ -414,7 +414,11 @@ A1 A2 A3 A4
 A5 A6 A7 A8
 ```
 
-The narrow overflow button contains four vertical bank indicators. Pressing it cycles through banks A–D. Each bank remembers its own most recently selected numbered pattern.
+The narrow overflow button contains four vertical bank indicators. Pressing it
+cycles through banks A–D without selecting or queueing a pattern in the newly
+visible bank. The currently playing pattern continues until the user explicitly
+presses a pattern button. If the visible bank does not contain that current
+pattern, none of its eight pattern buttons appears selected.
 
 The bank colors are:
 
@@ -448,9 +452,8 @@ Pattern button fill communicates sequence occupancy:
 - Clearing a pattern with Stop lock changes it to the empty treatment immediately.
 
 A pattern counts as populated when at least one step on any track is active.
-Shift or Stop lock may be used with the bank overflow control to browse another
-bank without changing the active pattern, allowing cross-bank copy, paste and
-clear actions.
+The bank overflow control always browses without changing the active pattern,
+allowing cross-bank selection, copy, paste and clear actions.
 
 Selecting a pattern should load that pattern’s complete state for all eight tracks.
 

@@ -196,19 +196,16 @@ export function selectPattern(state, patternIndex, isPlaying) {
   return state;
 }
 
-export function selectBank(state, bankIndex, isPlaying) {
-  const nextBank = clampInteger(bankIndex, 0, BANKS.length - 1);
-  const selectedSlot = clampInteger(state.selectedPatternByBank[nextBank], 0, PATTERNS_PER_BANK - 1);
-
-  state.selectedBank = nextBank;
-  return selectPattern(state, nextBank * PATTERNS_PER_BANK + selectedSlot, isPlaying);
+export function selectBank(state, bankIndex) {
+  state.selectedBank = clampInteger(bankIndex, 0, BANKS.length - 1);
+  return state;
 }
 
 export function commitQueuedPattern(state, scheduledPattern = state.queuedPattern) {
   if (scheduledPattern != null) {
     state.selectedPattern = clampInteger(scheduledPattern, 0, PATTERN_NAMES.length - 1);
-    state.selectedBank = Math.floor(state.selectedPattern / PATTERNS_PER_BANK);
-    state.selectedPatternByBank[state.selectedBank] = state.selectedPattern % PATTERNS_PER_BANK;
+    const patternBank = Math.floor(state.selectedPattern / PATTERNS_PER_BANK);
+    state.selectedPatternByBank[patternBank] = state.selectedPattern % PATTERNS_PER_BANK;
     if (state.queuedPattern === state.selectedPattern) {
       state.queuedPattern = null;
     }

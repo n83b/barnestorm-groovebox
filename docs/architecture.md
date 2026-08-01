@@ -16,7 +16,7 @@ The DOM remains semantic: tracks, steps, patterns and transport actions are butt
 
 Global project state contains:
 
-- Selected track and pattern
+- Selected track, playing pattern and independently browsed pattern bank
 - Queued pattern
 - Tempo, swing and global sidechain-compression amount
 - Eight mute states
@@ -39,6 +39,12 @@ Each event currently stores:
 Each pattern track stores its own nine knob positions. Moving a knob with Shift
 off updates those pattern-local values, so switching away and back restores the
 track exactly as it was last set in that pattern.
+
+The visible pattern bank is navigation state, not a pattern selection. Cycling
+the bank overflow button only changes which eight pattern buttons are shown; it
+does not change or queue the playing pattern. A newly browsed bank therefore has
+no selected button unless it contains the current pattern. Pressing one of its
+pattern buttons explicitly selects or queues that pattern.
 
 With Shift toggled on, moving one of the nine selected-track knobs writes that
 parameter to the selected track's current playhead step. Playback merges those
