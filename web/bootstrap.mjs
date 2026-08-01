@@ -3,7 +3,7 @@ import {
   isMobileDevice,
   isStandalone,
   shouldRequireMobileInstall
-} from "./install-mode.mjs";
+} from "./install-mode.mjs?v=dev";
 
 const device = {
   userAgent: navigator.userAgent,
@@ -62,5 +62,5 @@ if (requireInstall) {
   });
 } else {
   document.body.classList.remove("pwa-checking");
-  await import("./app.mjs?v=19");
+  await import("./app.mjs?v=dev");
 }

@@ -71,9 +71,28 @@ clock. Timing, event collection and playback-rate calculations live in
 
 ## Persistence
 
-The complete serialisable project state is stored in `localStorage` under a versioned key. Restore logic clamps ranges and fills missing values from the current defaults so malformed or older partial data cannot break the instrument.
+The complete serialisable project state is stored in `localStorage` under a
+pack-scoped versioned key. Each project records its immutable pack id. At weekly
+rollover, the previous weekly draft remains stored under its original pack id
+and a fresh draft is opened for the newly delivered pack. There is no archive
+UI in the MVP, but the saved state remains available for that future feature.
 
-A future storage adapter can replace `localStorage` with IndexedDB when real audio assets and multiple projects are introduced.
+Restore logic clamps ranges and fills missing values from the current defaults
+so malformed or older partial data cannot break the instrument. The original
+unscoped project key is treated as legacy state and is attached to the first
+successfully delivered pack without losing edits.
+
+Weekly audio packs use a separate IndexedDB repository. A small, revalidated
+`assets/packs/current.json` file points to an immutable pack manifest. The app
+downloads all eight samples, verifies byte lengths and SHA-256 hashes, and then
+writes the manifest and sample buffers as one IndexedDB record. This makes pack
+availability atomic: an interrupted download cannot displace the last complete
+pack.
+
+At launch the current pointer is preferred. When the network or current pack is
+unavailable, the project-pinned cached pack is used, followed by the newest
+complete cached pack as a final fallback. Foreground checks may pre-download a
+new pack, but an open session never changes samples underneath the project.
 
 ## Fixed-ratio layout
 
@@ -99,6 +118,14 @@ appropriate installation instructions, while desktop browsers remain available
 for development and keyboard use. Service-worker registration remains active on
 the installation screen so supported browsers can offer their native install
 prompt.
+
+Production builds calculate a 12-character SHA-256 fingerprint from the complete
+`web/` source tree. The build replaces every development asset-version query
+and the service-worker shell cache name with that fingerprint. Any code, style,
+icon or pack-source change therefore produces a new immutable release identity
+without manually incrementing cache versions. An already open PWA session keeps
+running its loaded code; the generated release is applied after deployment and
+the user's next full launch.
 
 ## Audio integration boundary
 
@@ -142,6 +169,10 @@ ordered track entries. The first four must be drums and the last four chromatic;
 chromatic entries declare a MIDI root note. Sample URLs resolve relative to the
 manifest, so a future pack cache can replace delivery without changing the
 engine contract.
+
+The audio engine accepts either manifest URLs for direct development use or a
+delivered manifest with eight in-memory sample buffers. It does not know whether
+those buffers came from the network or IndexedDB.
 
 ## Testing strategy
 

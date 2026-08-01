@@ -73,4 +73,8 @@ test("requires four drum and four chromatic samples in a weekly pack", () => {
     () => validatePackManifest({ ...pack, tracks: pack.tracks.slice(0, 7) }),
     /exactly eight/
   );
+  assert.throws(
+    () => validatePackManifest({ ...pack, schemaVersion: 2 }),
+    /unsupported schema/
+  );
 });

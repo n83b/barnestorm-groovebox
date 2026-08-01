@@ -44,6 +44,9 @@ export function validatePackManifest(pack) {
   if (!pack || typeof pack !== "object") {
     throw new TypeError("The weekly pack manifest must be an object.");
   }
+  if (pack.schemaVersion != null && pack.schemaVersion !== 1) {
+    throw new TypeError("The weekly pack manifest has an unsupported schema version.");
+  }
 
   if (!Array.isArray(pack.tracks) || pack.tracks.length !== 8) {
     throw new TypeError("A weekly pack must contain exactly eight tracks.");
@@ -75,7 +78,10 @@ export function validatePackManifest(pack) {
   });
 
   return {
+    ...pack,
+    schemaVersion: 1,
     id: String(pack.id ?? "weekly-pack"),
+    year: pack.year == null ? null : clampInteger(pack.year, 2020, 9999, 2020),
     week: clampInteger(pack.week, 1, 53, 1),
     name: String(pack.name ?? "Untitled Pack"),
     license: String(pack.license ?? ""),

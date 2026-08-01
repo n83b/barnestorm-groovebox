@@ -311,8 +311,17 @@ input:focus-visible {
   box-shadow: 0 0 8px rgba(255, 74, 74, 0.4);
 }
 
+.availability-dot.is-offline {
+  background: #f0b43c;
+  box-shadow: 0 0 8px rgba(240, 180, 60, 0.4);
+}
+
 .pack-card.is-error .pack-meta {
   color: #ffaaaa;
+}
+
+.pack-card.is-offline .pack-meta {
+  color: #e3c98e;
 }
 
 .global-controls {

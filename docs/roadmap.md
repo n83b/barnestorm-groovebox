@@ -51,9 +51,9 @@ Status: complete
 - Web app manifest and product icon set — complete
 - Mobile installed-app launch gate — complete
 - Service-worker application shell — complete
-- IndexedDB weekly pack cache
-- Offline startup with the most recent downloaded pack
-- Pack download and integrity status
+- IndexedDB weekly pack cache — complete
+- Offline startup with the most recent downloaded pack — complete
+- Pack download and integrity status — complete
 - Install and resume validation on iOS
 
 ## Milestone 5 — Project and export reliability
@@ -70,7 +70,7 @@ Status: complete
 - VoiceOver and keyboard audit
 - Contrast and reduced-motion audit
 - Performance profiling on supported iPhones
-- Pack rollover and countdown behaviour
+- Pack rollover and countdown behaviour — complete
 - Final visual polish against the approved mockup
 
 ## Not in MVP

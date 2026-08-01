@@ -22,17 +22,24 @@ import {
   setStepAutomation,
   setTrackLength,
   toggleStep
-} from "./state.mjs?v=14";
-import { AudioEngine } from "./audio-engine.mjs?v=12";
+} from "./state.mjs?v=dev";
+import { AudioEngine } from "./audio-engine.mjs?v=dev";
+import {
+  IndexedDbPackRepository,
+  PackDelivery,
+  getDaysRemaining
+} from "./pack-delivery.mjs?v=dev";
 import {
   getShiftModifierState,
   shouldToggleTransportFromKeydown,
   toggleShiftModifier
-} from "./keyboard.mjs?v=3";
-import { BASE_HEIGHT, BASE_WIDTH, calculateStageScale } from "./layout.mjs";
+} from "./keyboard.mjs?v=dev";
+import { BASE_HEIGHT, BASE_WIDTH, calculateStageScale } from "./layout.mjs?v=dev";
 
-const STORAGE_KEY = "weekly-groovebox-project-v1";
-const PACK_MANIFEST_URL = "./assets/packs/week-31/manifest.json";
+const LEGACY_STORAGE_KEY = "weekly-groovebox-project-v1";
+const ACTIVE_PACK_STORAGE_KEY = "weekly-groovebox-active-pack-v1";
+const PROJECT_STORAGE_PREFIX = "weekly-groovebox-project-v2:";
+const PACK_POINTER_URL = "./assets/packs/current.json";
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const elements = {
@@ -68,7 +75,13 @@ let stopLocked = false;
 let saveStatusTimer = null;
 let editSession = null;
 let stageResizeFrame = null;
-const audioEngine = new AudioEngine({ onStatusChange: updatePackStatus });
+let activePackOffline = false;
+const audioEngine = new AudioEngine({ onStatusChange: handleAudioEngineStatus });
+const packDelivery = new PackDelivery({
+  pointerUrl: PACK_POINTER_URL,
+  repository: new IndexedDbPackRepository(),
+  onStatusChange: updatePackStatus
+});
 
 updateStageScale();
 renderDateMetadata();
@@ -103,25 +116,68 @@ function updateStageScale() {
 
 function loadState() {
   try {
-    const savedState = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return restoreState(savedState);
+    const activePackId = localStorage.getItem(ACTIVE_PACK_STORAGE_KEY);
+    const savedProject = activePackId
+      ? localStorage.getItem(getProjectStorageKey(activePackId))
+      : localStorage.getItem(LEGACY_STORAGE_KEY);
+    return restoreState(JSON.parse(savedProject));
   } catch {
     return createInitialState();
   }
 }
 
-function persistState() {
+function loadProjectForPack(packId) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    elements.saveStatus.classList.add("is-visible");
-    window.clearTimeout(saveStatusTimer);
-    saveStatusTimer = window.setTimeout(() => elements.saveStatus.classList.remove("is-visible"), 850);
+    const savedProject = localStorage.getItem(getProjectStorageKey(packId));
+    return savedProject ? restoreState(JSON.parse(savedProject)) : null;
+  } catch {
+    return null;
+  }
+}
+
+function getProjectStorageKey(packId) {
+  return `${PROJECT_STORAGE_PREFIX}${packId}`;
+}
+
+function persistState(showStatus = true) {
+  try {
+    if (state.packId) {
+      localStorage.setItem(ACTIVE_PACK_STORAGE_KEY, state.packId);
+      localStorage.setItem(getProjectStorageKey(state.packId), JSON.stringify(state));
+    } else {
+      localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(state));
+    }
+    if (showStatus) {
+      elements.saveStatus.classList.add("is-visible");
+      window.clearTimeout(saveStatusTimer);
+      saveStatusTimer = window.setTimeout(() => elements.saveStatus.classList.remove("is-visible"), 850);
+    }
   } catch {
     // The instrument stays usable if private browsing blocks storage.
   }
 }
 
-function initializeAudio() {
+async function initializeAudio() {
+  syncProjectAudioSettings();
+
+  try {
+    const result = await packDelivery.loadCurrent({ fallbackPackId: state.packId });
+    activePackOffline = result.offline;
+    activateProjectForPack(result.delivery.manifest.id);
+    await audioEngine.loadPack(result.delivery);
+  } catch {
+    // Delivery and decoding errors are exposed by the pack card.
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    if (isPlaying) audioEngine.resume().catch(() => {});
+    packDelivery.loadCurrent({ fallbackPackId: state.packId, quiet: true }).catch(() => {});
+  });
+  window.addEventListener("pagehide", () => audioEngine.stop());
+}
+
+function syncProjectAudioSettings() {
   state.trackParameters.forEach((_, trackIndex) => {
     audioEngine.setTrackParameters(
       trackIndex,
@@ -130,35 +186,56 @@ function initializeAudio() {
     audioEngine.setMuted(trackIndex, state.muted[trackIndex]);
   });
   audioEngine.setCompressor(state.compressor);
+}
 
-  audioEngine.loadPack(PACK_MANIFEST_URL).catch(() => {
-    // The pack card exposes the loading error while the visual instrument stays usable.
-  });
+function activateProjectForPack(packId) {
+  if (!state.packId) {
+    state.packId = packId;
+  } else if (state.packId !== packId) {
+    persistState(false);
+    state = loadProjectForPack(packId) ?? createInitialState(packId);
+  }
 
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && isPlaying) {
-      audioEngine.resume().catch(() => {});
-    }
-  });
-  window.addEventListener("pagehide", () => audioEngine.stop());
+  persistState(false);
+  renderGlobalControls();
+  renderAll();
+  syncProjectAudioSettings();
+}
+
+function handleAudioEngineStatus(status, detail) {
+  if (status === "ready" && activePackOffline) {
+    updatePackStatus("offline", { manifest: detail });
+  } else {
+    updatePackStatus(status, detail);
+  }
 }
 
 function updatePackStatus(status, detail) {
-  elements.packCard.classList.toggle("is-loading", status === "loading");
-  elements.packCard.classList.toggle("is-error", status === "error");
-  elements.availabilityDot.classList.toggle("is-loading", status === "loading");
-  elements.availabilityDot.classList.toggle("is-error", status === "error");
+  const isLoading = ["checking", "downloading", "downloaded", "cached", "loading"].includes(status);
+  const pack = detail?.manifest ?? detail;
 
-  if (status === "ready") {
-    elements.weekNumber.textContent = `Week ${detail.week}`;
-    elements.packName.textContent = detail.name;
+  elements.packCard.classList.toggle("is-loading", isLoading);
+  elements.packCard.classList.toggle("is-error", status === "error");
+  elements.packCard.classList.toggle("is-offline", status === "offline");
+  elements.availabilityDot.classList.toggle("is-loading", isLoading);
+  elements.availabilityDot.classList.toggle("is-error", status === "error");
+  elements.availabilityDot.classList.toggle("is-offline", status === "offline");
+
+  if (["ready", "offline"].includes(status) && pack?.tracks?.length === 8) {
+    elements.weekNumber.textContent = `Week ${pack.week}`;
+    elements.packName.textContent = pack.name;
+    renderPackCountdown(pack, status === "offline");
     elements.packCard.setAttribute(
       "aria-label",
-      `This week's sample pack, ${detail.name}, eight samples loaded`
+      `${status === "offline" ? "Saved" : "This week's"} sample pack, ${pack.name}, eight samples loaded`
     );
-  } else if (status === "loading") {
+  } else if (status === "downloading") {
+    elements.daysLeft.textContent = `Downloading ${detail?.completed ?? 0}/${detail?.total ?? 8}`;
+    elements.packCard.setAttribute("aria-label", `Weekly pack downloading, ${detail?.completed ?? 0} of ${detail?.total ?? 8} samples`);
+  } else if (isLoading) {
     elements.packCard.setAttribute("aria-label", "This week's sample pack is loading");
   } else if (status === "error") {
+    elements.daysLeft.textContent = "Connection required";
     elements.packCard.setAttribute(
       "aria-label",
       `This week's sample pack could not load: ${detail?.message ?? "unknown error"}`
@@ -182,6 +259,19 @@ function renderDateMetadata() {
 
   elements.weekNumber.textContent = `Week ${week}`;
   elements.daysLeft.textContent = daysRemaining === 1 ? "1 day left" : `${daysRemaining} days left`;
+}
+
+function renderPackCountdown(pack, offline) {
+  const daysRemaining = getDaysRemaining(pack.expiresAt);
+  if (offline && daysRemaining === 0) {
+    elements.daysLeft.textContent = "Saved offline";
+  } else if (daysRemaining == null) {
+    elements.daysLeft.textContent = offline ? "Saved offline" : "Downloaded";
+  } else if (daysRemaining === 0) {
+    elements.daysLeft.textContent = "Changes today";
+  } else {
+    elements.daysLeft.textContent = daysRemaining === 1 ? "1 day left" : `${daysRemaining} days left`;
+  }
 }
 
 function renderTracks() {

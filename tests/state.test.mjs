@@ -52,8 +52,9 @@ test("uses one shared orange accent for all four drum tracks", () => {
 });
 
 test("creates thirty-two patterns with eight independent sixteen-step tracks", () => {
-  const state = createInitialState();
+  const state = createInitialState("test-pack");
 
+  assert.equal(state.packId, "test-pack");
   assert.equal(state.patterns.length, 32);
   assert.equal(state.patterns[0].tracks.length, 8);
   assert.equal(state.patterns[0].tracks[0].steps.length, 16);
@@ -61,6 +62,13 @@ test("creates thirty-two patterns with eight independent sixteen-step tracks", (
   assert.deepEqual(state.patterns[0].tracks[0].steps[0].automation, {});
   assert.notEqual(state.patterns[0].tracks[0], state.patterns[1].tracks[0]);
   assert.notEqual(state.patterns[0].tracks[0].parameters, state.patterns[1].tracks[0].parameters);
+});
+
+test("restores the immutable pack reference with a saved project", () => {
+  const state = createInitialState("2026-week-31-test");
+  const restored = restoreState(structuredClone(state));
+
+  assert.equal(restored.packId, "2026-week-31-test");
 });
 
 test("records independent per-step automation without changing the pattern knob position", () => {

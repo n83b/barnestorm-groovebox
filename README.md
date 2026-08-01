@@ -26,6 +26,19 @@ The state model uses Node's built-in test runner:
 node --test tests/*.test.mjs
 ```
 
+## Create a weekly pack
+
+Create a year-qualified folder under `web/assets/packs/`, add the eight standard
+WAV filenames, then run:
+
+```sh
+npm run create:pack -- 2026-week-32-found-signals
+```
+
+The command generates the manifest, calculates integrity metadata, updates the
+current-pack pointer and validates the result. See
+`docs/pack-publishing.md` for naming, metadata overrides and deployment.
+
 ## Implemented
 
 - Responsive, single-screen groovebox layout
@@ -35,6 +48,10 @@ node --test tests/*.test.mjs
 - Four color-coded banks with eight patterns each, per-bank selection memory and queued switching during playback
 - Play, stop, playhead and swing-aware timing
 - Manifest-driven loading and decoding of the eight-sample weekly pack
+- Integrity-checked weekly delivery through a revalidated current-pack pointer
+- IndexedDB sample-pack caching and offline audio startup
+- Pack-pinned weekly drafts with non-destructive rollover
+- Content-fingerprinted production assets and automatic PWA cache invalidation
 - Web Audio look-ahead scheduling with an audio-synchronised playhead
 - Velocity, mute, chromatic note and per-track transpose playback
 - Low-latency note and velocity preview while editing active steps
@@ -60,14 +77,19 @@ npm run generate:samples
 - `web/styles.css` — responsive hardware-inspired presentation
 - `web/app.mjs` — rendering, gestures, transport and persistence
 - `web/audio-engine.mjs` — Web Audio loading, voices, preview and look-ahead clock
+- `web/pack-delivery.mjs` — current-pack resolution, integrity checks and IndexedDB storage
 - `web/sequencer.mjs` — deterministic timing, event and pitch calculations
+- `web/assets/packs/current.json` — pointer to the currently published immutable pack
 - `web/assets/packs/week-31/manifest.json` — weekly pack metadata and sample map
 - `web/layout.mjs` — 1024 × 576 scaling calculations
 - `web/state.mjs` — project data model and state operations
 - `tests/state.test.mjs` — state-model regression tests
 - `tests/sequencer.test.mjs` — deterministic scheduler tests
 - `tests/audio-engine.test.mjs` — audio engine integration tests with a fake context
+- `tools/create-pack.mjs` — generate and activate a pack from eight named WAV files
+- `tools/validate-pack.mjs` — validate the current pointer, manifest and sample integrity
 - `docs/product.md` — product principles
 - `docs/ui-interaction-spec.md` — interaction contract
 - `docs/architecture.md` — implementation architecture
+- `docs/pack-publishing.md` — manual weekly pack publishing workflow
 - `docs/roadmap.md` — milestone plan

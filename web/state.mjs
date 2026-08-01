@@ -47,7 +47,7 @@ const DEFAULT_STEPS = {
   }
 };
 
-export function createInitialState() {
+export function createInitialState(packId = null) {
   const patterns = PATTERN_NAMES.map((patternName) => ({
     name: patternName,
     tracks: TRACKS.map((track, trackIndex) => ({
@@ -67,6 +67,7 @@ export function createInitialState() {
 
   return {
     version: 1,
+    packId: normalizePackId(packId),
     selectedTrack: 0,
     selectedBank: 0,
     selectedPattern: 0,
@@ -84,7 +85,7 @@ export function createInitialState() {
 }
 
 export function restoreState(rawState) {
-  const fallback = createInitialState();
+  const fallback = createInitialState(rawState?.packId);
 
   if (!rawState || rawState.version !== fallback.version) {
     return fallback;
@@ -109,6 +110,7 @@ export function restoreState(rawState) {
     return {
       ...fallback,
       ...rawState,
+      packId: normalizePackId(rawState.packId),
       selectedTrack: clampInteger(rawState.selectedTrack, 0, TRACKS.length - 1),
       selectedBank,
       selectedPattern,
@@ -152,6 +154,10 @@ export function restoreState(rawState) {
   } catch {
     return fallback;
   }
+}
+
+function normalizePackId(value) {
+  return typeof value === "string" && value.length > 0 ? value : null;
 }
 
 export function toggleStep(state, stepIndex) {

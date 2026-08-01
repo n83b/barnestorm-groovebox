@@ -189,6 +189,24 @@ function createFetch() {
   });
 }
 
+test("decodes delivered sample buffers without fetching them again", async () => {
+  const engine = new AudioEngine({
+    AudioContextClass: FakeAudioContext,
+    fetchImpl: async () => { throw new Error("unexpected fetch"); }
+  });
+
+  await engine.loadPack({
+    manifest: pack,
+    samples: pack.tracks.map((track) => ({
+      trackId: track.id,
+      data: new ArrayBuffer(8)
+    }))
+  });
+
+  assert.equal(FakeAudioContext.instance.decodedBuffers, 8);
+  assert.equal(engine.pack.id, pack.id);
+});
+
 test("maps sample windows and filter cutoff across safe musical ranges", () => {
   assert.deepEqual(
     getSampleWindow({ duration: 4 }, 25, 75),

@@ -4,7 +4,7 @@ import {
   getStepDurationSeconds,
   getStepEvents,
   validatePackManifest
-} from "./sequencer.mjs";
+} from "./sequencer.mjs?v=dev";
 
 const SCHEDULE_INTERVAL_MS = 25;
 const SCHEDULE_AHEAD_SECONDS = 0.1;
@@ -252,9 +252,15 @@ export class AudioEngine {
 
     try {
       let manifest;
+      let deliveredSamples = null;
       let baseUrl = globalThis.location?.href ?? "http://localhost/";
 
-      if (typeof packSource === "string" || packSource instanceof URL) {
+      if (packSource?.manifest && Array.isArray(packSource.samples)) {
+        manifest = packSource.manifest;
+        deliveredSamples = new Map(
+          packSource.samples.map((sample) => [sample.trackId, sample.data])
+        );
+      } else if (typeof packSource === "string" || packSource instanceof URL) {
         if (!this.fetchImpl) throw new Error("Fetch is unavailable.");
         const manifestUrl = new URL(String(packSource), baseUrl);
         const response = await this.fetchImpl(manifestUrl.href);
@@ -270,6 +276,13 @@ export class AudioEngine {
       const pack = validatePackManifest(manifest);
       const context = this.#getContext();
       const buffers = await Promise.all(pack.tracks.map(async (track) => {
+        if (deliveredSamples) {
+          const data = deliveredSamples.get(track.id);
+          if (!(data instanceof ArrayBuffer)) {
+            throw new Error(`The delivered pack is missing ${track.name ?? track.id}.`);
+          }
+          return context.decodeAudioData(data.slice(0));
+        }
         const response = await this.fetchImpl(new URL(track.file, baseUrl).href);
         if (!response.ok) {
           throw new Error(`Could not load ${track.name ?? track.id} (${response.status}).`);

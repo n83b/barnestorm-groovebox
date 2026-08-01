@@ -1,5 +1,7 @@
 {
+  "schemaVersion": 1,
   "id": "2026-week-31-broken-machinery",
+  "year": 2026,
   "week": 31,
   "name": "Broken Machinery",
   "license": "CC0-1.0",
@@ -8,53 +10,69 @@
       "id": "kick",
       "name": "Kick",
       "kind": "drum",
-      "file": "./kick.wav"
+      "file": "./kick.wav",
+      "byteLength": 42380,
+      "sha256": "63cced72d21becfdf741534d1f3e7e3c075f0f5f50d7cd8c3fd23237451542c1"
     },
     {
       "id": "snare",
       "name": "Snare",
       "kind": "drum",
-      "file": "./snare.wav"
+      "file": "./snare.wav",
+      "byteLength": 37088,
+      "sha256": "6726152427c9cdc7ee7e6b938ce99714f830f243edac1c83bc319ef203518494"
     },
     {
       "id": "hi-hat",
       "name": "Hi-hat",
       "kind": "drum",
-      "file": "./hi-hat.wav"
+      "file": "./hi-hat.wav",
+      "byteLength": 16802,
+      "sha256": "08eb342a3b9991fe410fce10e5c4b1ba163bfed45e1bd60475057a356ccbba41"
     },
     {
       "id": "perc",
       "name": "Perc",
       "kind": "drum",
-      "file": "./perc.wav"
+      "file": "./perc.wav",
+      "byteLength": 31796,
+      "sha256": "b73dc8584fca49a9311b6d82e4c840d2cf7d2d8e5b150974f3ccd41a412530d7"
     },
     {
       "id": "bass",
       "name": "Bass",
       "kind": "chromatic",
       "rootNote": 48,
-      "file": "./bass.wav"
+      "file": "./bass.wav",
+      "byteLength": 92654,
+      "sha256": "b4d8322dbaddd3f19e2138a8dd682d6cc16354b14f22c6d0ba23f6b4de2ff28b"
     },
     {
       "id": "lead",
       "name": "Lead",
       "kind": "chromatic",
       "rootNote": 48,
-      "file": "./lead.wav"
+      "file": "./lead.wav",
+      "byteLength": 77660,
+      "sha256": "ae81fc62ec4d36d9043baaae56f7e3bea6b5d5509dc5da6472f1f6c47e481cb2"
     },
     {
       "id": "chord",
       "name": "Chord",
       "kind": "chromatic",
       "rootNote": 48,
-      "file": "./chord.wav"
+      "file": "./chord.wav",
+      "byteLength": 110294,
+      "sha256": "baec41e6cbe500d40172db380a0e2d5f14643836782f783e12bc5553c327ffa8"
     },
     {
       "id": "texture",
       "name": "Texture",
       "kind": "chromatic",
       "rootNote": 48,
-      "file": "./texture.wav"
+      "file": "./texture.wav",
+      "byteLength": 141164,
+      "sha256": "9f15b528bab56d942b733d727b7183501ea4d864014b3c34cad7611833b831ec"
     }
   ]
 }
