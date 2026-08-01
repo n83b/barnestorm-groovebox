@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "2026-week-32-pumpin-techno",
+  "year": 2026,
+  "week": 32,
+  "name": "Pumpin Techno",
+  "license": "All rights reserved",
+  "tracks": [
+    {
+      "id": "kick",
+      "name": "Kick",
+      "kind": "drum",
+      "file": "./kick.wav",
+      "byteLength": 176444,
+      "sha256": "f95e984c0b5c014c075e65fefbf0ea21131fa47a714edce7d03058e0b1285af8"
+    },
+    {
+      "id": "snare",
+      "name": "Snare",
+      "kind": "drum",
+      "file": "./snare.wav",
+      "byteLength": 176444,
+      "sha256": "194fe833c6219a46d2dc9faa3ac7ff805c9fa0b99a4efaed5f3b9a6119399350"
+    },
+    {
+      "id": "hi-hat",
+      "name": "Hi-hat",
+      "kind": "drum",
+      "file": "./hi-hat.wav",
+      "byteLength": 176444,
+      "sha256": "933430dde27b3187c8aed328c4cefe049b6e72676c16da7d6e75b960987ba012"
+    },
+    {
+      "id": "perc",
+      "name": "Perc",
+      "kind": "drum",
+      "file": "./perc.wav",
+      "byteLength": 176444,
+      "sha256": "a73e00b13c10c6b2e8f6c5ff099c2fdfa1587c1f3d4f1970c55a1a2f31bf5537"
+    },
+    {
+      "id": "bass",
+      "name": "Bass",
+      "kind": "chromatic",
+      "rootNote": 48,
+      "file": "./bass.wav",
+      "byteLength": 176444,
+      "sha256": "db0391ab71c1c6c18bbe7a1c223f48d77ce1b18421306a4edab2d837c2f34ad2"
+    },
+    {
+      "id": "lead",
+      "name": "Lead",
+      "kind": "chromatic",
+      "rootNote": 48,
+      "file": "./lead.wav",
+      "byteLength": 176444,
+      "sha256": "b19b614aefc9b9c31a7a3e753b62164f7d4750eede5c3e0965f535eb88286de8"
+    },
+    {
+      "id": "chord",
+      "name": "Chord",
+      "kind": "chromatic",
+      "rootNote": 48,
+      "file": "./chord.wav",
+      "byteLength": 352844,
+      "sha256": "55a14112dae7aec6b8f1455b4ffa00c95d460d099376c0d34d28a4b33964ba8d"
+    },
+    {
+      "id": "texture",
+      "name": "Texture",
+      "kind": "chromatic",
+      "rootNote": 48,
+      "file": "./texture.wav",
+      "byteLength": 176444,
+      "sha256": "3e709a1ac83d6847e47adff2965e4394f5a40bb5221d02e318ac2670bed36754"
+    }
+  ]
+}
