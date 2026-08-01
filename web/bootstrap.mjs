@@ -62,5 +62,5 @@ if (requireInstall) {
   });
 } else {
   document.body.classList.remove("pwa-checking");
-  await import("./app.mjs?v=14");
+  await import("./app.mjs?v=19");
 }

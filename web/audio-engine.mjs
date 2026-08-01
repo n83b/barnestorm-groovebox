@@ -310,7 +310,9 @@ export class AudioEngine {
         );
         const stepIndex = this.transportTick % length;
         return {
-          ...(snapshot.trackParameters?.[trackIndex] ?? this.trackParameters[trackIndex]),
+          ...(patternTrack.parameters
+            ?? snapshot.trackParameters?.[trackIndex]
+            ?? this.trackParameters[trackIndex]),
           ...(patternTrack.steps?.[stepIndex]?.automation ?? {})
         };
       });

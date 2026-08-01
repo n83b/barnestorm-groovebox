@@ -52,12 +52,16 @@ export function createInitialState() {
     name: patternName,
     tracks: TRACKS.map((track, trackIndex) => ({
       length: 16,
-      steps: Array.from({ length: 16 }, (_, stepIndex) => ({
-        active: DEFAULT_STEPS[patternName]?.[track.name]?.includes(stepIndex) ?? false,
-        note: 48 + trackIndex,
-        velocity: stepIndex % 4 === 0 ? 112 : 92,
-        automation: {}
-      }))
+      parameters: Object.fromEntries(
+        PARAMETER_DEFINITIONS.map((parameter) => [parameter.key, parameter.defaultValue])
+      ),
+      steps: Array.from({ length: 16 }, (_, stepIndex) =>
+        createStep(
+          trackIndex,
+          stepIndex,
+          DEFAULT_STEPS[patternName]?.[track.name]?.includes(stepIndex) ?? false
+        )
+      )
     }))
   }));
 
@@ -123,8 +127,13 @@ export function restoreState(rawState) {
         name: defaultPattern.name,
         tracks: defaultPattern.tracks.map((defaultTrack, trackIndex) => {
           const savedTrack = rawState.patterns?.[patternIndex]?.tracks?.[trackIndex];
+          const parameters = restoreTrackParameters(
+            savedTrack?.parameters,
+            trackParameters[trackIndex]
+          );
           return {
             length: clampInteger(savedTrack?.length ?? defaultTrack.length, 1, 16),
+            parameters,
             steps: defaultTrack.steps.map((defaultStep, stepIndex) => ({
               ...defaultStep,
               ...(savedTrack?.steps?.[stepIndex] ?? {}),
@@ -133,7 +142,7 @@ export function restoreState(rawState) {
               velocity: clampInteger(savedTrack?.steps?.[stepIndex]?.velocity ?? defaultStep.velocity, 1, 127),
               automation: restoreStepAutomation(
                 savedTrack?.steps?.[stepIndex]?.automation,
-                trackParameters[trackIndex]
+                parameters
               )
             }))
           };
@@ -206,7 +215,7 @@ export function setParameter(state, key, value) {
   if (!definition) return state;
 
   let nextValue = clampNumber(value, definition.min, definition.max);
-  const parameters = state.trackParameters[state.selectedTrack];
+  const parameters = getSelectedPatternTrack(state).parameters;
 
   if (key === "start") nextValue = Math.min(nextValue, parameters.end - 1);
   if (key === "end") nextValue = Math.max(nextValue, parameters.start + 1);
@@ -229,9 +238,23 @@ export function setStepAutomation(state, stepIndex, key, value) {
 
   step.automation = restoreStepAutomation(
     automation,
-    state.trackParameters[state.selectedTrack]
+    getPatternTrackParameters(state, state.selectedPattern, state.selectedTrack)
   );
   return state;
+}
+
+export function getPatternTrackParameters(
+  state,
+  patternIndex = state.selectedPattern,
+  trackIndex = state.selectedTrack
+) {
+  const safePatternIndex = clampInteger(patternIndex, 0, state.patterns.length - 1);
+  const safeTrackIndex = clampInteger(trackIndex, 0, TRACKS.length - 1);
+  const patternTrack = state.patterns[safePatternIndex].tracks[safeTrackIndex];
+  return restoreTrackParameters(
+    patternTrack.parameters,
+    state.trackParameters[safeTrackIndex]
+  );
 }
 
 export function getAutomatedTrackParameters(
@@ -244,12 +267,17 @@ export function getAutomatedTrackParameters(
   const safeTrackIndex = clampInteger(trackIndex, 0, TRACKS.length - 1);
   const patternTrack = state.patterns[safePatternIndex].tracks[safeTrackIndex];
   const safeStepIndex = clampInteger(stepIndex, 0, patternTrack.length - 1);
+  const patternParameters = getPatternTrackParameters(
+    state,
+    safePatternIndex,
+    safeTrackIndex
+  );
 
   return {
-    ...state.trackParameters[safeTrackIndex],
+    ...patternParameters,
     ...restoreStepAutomation(
       patternTrack.steps[safeStepIndex].automation,
-      state.trackParameters[safeTrackIndex]
+      patternParameters
     )
   };
 }
@@ -289,6 +317,29 @@ export function clearTrackAutomation(
   return state;
 }
 
+export function clearTrackSequence(
+  state,
+  patternIndex = state.selectedPattern,
+  trackIndex = state.selectedTrack
+) {
+  const safePatternIndex = clampInteger(patternIndex, 0, state.patterns.length - 1);
+  const safeTrackIndex = clampInteger(trackIndex, 0, TRACKS.length - 1);
+  const patternTrack = state.patterns[safePatternIndex].tracks[safeTrackIndex];
+
+  patternTrack.steps = Array.from({ length: 16 }, (_, stepIndex) =>
+    createStep(safeTrackIndex, stepIndex)
+  );
+  return state;
+}
+
+export function clearPatternSequence(state, patternIndex = state.selectedPattern) {
+  const safePatternIndex = clampInteger(patternIndex, 0, state.patterns.length - 1);
+  TRACKS.forEach((_, trackIndex) => {
+    clearTrackSequence(state, safePatternIndex, trackIndex);
+  });
+  return state;
+}
+
 export function getSelectedPatternTrack(state) {
   return state.patterns[state.selectedPattern].tracks[state.selectedTrack];
 }
@@ -296,6 +347,15 @@ export function getSelectedPatternTrack(state) {
 export function formatNote(midiNote) {
   const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   return `${noteNames[midiNote % 12]}${Math.floor(midiNote / 12) - 1}`;
+}
+
+function createStep(trackIndex, stepIndex, active = false) {
+  return {
+    active,
+    note: 48 + trackIndex,
+    velocity: stepIndex % 4 === 0 ? 112 : 92,
+    automation: {}
+  };
 }
 
 function formatPan(value) {

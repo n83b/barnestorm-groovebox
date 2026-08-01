@@ -5,11 +5,14 @@ import {
   PARAMETER_DEFINITIONS,
   PATTERN_NAMES,
   TRACKS,
+  clearPatternSequence,
   clearTrackAutomation,
+  clearTrackSequence,
   commitQueuedPattern,
   createInitialState,
   formatNote,
   getAutomatedTrackParameters,
+  getPatternTrackParameters,
   getTrackPlayhead,
   hasTrackAutomation,
   restoreState,
@@ -54,23 +57,39 @@ test("creates thirty-two patterns with eight independent sixteen-step tracks", (
   assert.equal(state.patterns.length, 32);
   assert.equal(state.patterns[0].tracks.length, 8);
   assert.equal(state.patterns[0].tracks[0].steps.length, 16);
+  assert.equal(state.patterns[0].tracks[0].parameters.volume, 78);
   assert.deepEqual(state.patterns[0].tracks[0].steps[0].automation, {});
   assert.notEqual(state.patterns[0].tracks[0], state.patterns[1].tracks[0]);
+  assert.notEqual(state.patterns[0].tracks[0].parameters, state.patterns[1].tracks[0].parameters);
 });
 
-test("records independent per-step automation without changing the track base value", () => {
+test("records independent per-step automation without changing the pattern knob position", () => {
   const state = createInitialState();
   state.selectedTrack = 4;
 
   setStepAutomation(state, 3, "filter", 24);
 
   assert.equal(state.trackParameters[4].filter, 86);
+  assert.equal(state.patterns[0].tracks[4].parameters.filter, 86);
   assert.equal(state.patterns[0].tracks[4].steps[3].automation.filter, 24);
   assert.equal(
     getAutomatedTrackParameters(state, 0, 4, 3).filter,
     24
   );
   assert.deepEqual(state.patterns[1].tracks[4].steps[3].automation, {});
+});
+
+test("stores independent knob positions for each pattern and track", () => {
+  const state = createInitialState();
+  state.selectedTrack = 4;
+
+  setParameter(state, "filter", 52);
+
+  assert.equal(state.trackParameters[4].filter, 86);
+  assert.equal(getPatternTrackParameters(state, 0, 4).filter, 52);
+  assert.equal(getAutomatedTrackParameters(state, 0, 4, 7).filter, 52);
+  assert.equal(getPatternTrackParameters(state, 1, 4).filter, 86);
+  assert.equal(hasTrackAutomation(state, "filter"), false);
 });
 
 test("keeps automated sample bounds valid and restores only known parameters", () => {
@@ -117,6 +136,50 @@ test("detects and clears one knob's automation only in the selected pattern and 
   assert.equal(hasTrackAutomation(state, "filter"), false);
   assert.equal(hasTrackAutomation(state, "pan"), true);
   assert.equal(hasTrackAutomation(state, "filter", 1, 4), true);
+});
+
+test("clears one track sequence without changing its length, knobs or other tracks", () => {
+  const state = createInitialState();
+  const patternTrack = state.patterns[0].tracks[4];
+  const otherTrackWasActive = state.patterns[0].tracks[0].steps[0].active;
+  state.patterns[1].tracks[4].steps[3].active = true;
+
+  patternTrack.length = 10;
+  patternTrack.parameters.filter = 52;
+  patternTrack.steps[3] = {
+    active: true,
+    note: 63,
+    velocity: 127,
+    automation: { filter: 20 }
+  };
+
+  clearTrackSequence(state, 0, 4);
+
+  assert.equal(patternTrack.steps.every((step) => !step.active), true);
+  assert.equal(patternTrack.steps[3].note, 52);
+  assert.equal(patternTrack.steps[3].velocity, 92);
+  assert.deepEqual(patternTrack.steps[3].automation, {});
+  assert.equal(patternTrack.length, 10);
+  assert.equal(patternTrack.parameters.filter, 52);
+  assert.equal(state.patterns[0].tracks[0].steps[0].active, otherTrackWasActive);
+  assert.equal(state.patterns[1].tracks[4].steps[3].active, true);
+});
+
+test("clears all eight sequences in one pattern without changing another pattern", () => {
+  const state = createInitialState();
+  state.patterns[0].tracks[2].length = 7;
+  state.patterns[0].tracks[2].parameters.pan = -24;
+  state.patterns[1].tracks[0].steps[2].active = true;
+
+  clearPatternSequence(state, 0);
+
+  assert.equal(
+    state.patterns[0].tracks.every((track) => track.steps.every((step) => !step.active)),
+    true
+  );
+  assert.equal(state.patterns[0].tracks[2].length, 7);
+  assert.equal(state.patterns[0].tracks[2].parameters.pan, -24);
+  assert.equal(state.patterns[1].tracks[0].steps[2].active, true);
 });
 
 test("creates four color-coded banks with eight numbered patterns each", () => {
@@ -200,10 +263,10 @@ test("keeps sample start and end in a valid order", () => {
   const state = createInitialState();
 
   setParameter(state, "start", 100);
-  assert.equal(state.trackParameters[0].start, 99);
+  assert.equal(state.patterns[0].tracks[0].parameters.start, 99);
 
   setParameter(state, "end", 0);
-  assert.equal(state.trackParameters[0].end, 100);
+  assert.equal(state.patterns[0].tracks[0].parameters.end, 100);
 });
 
 test("restores safe values from persisted state", () => {
@@ -225,6 +288,19 @@ test("restores safe values from persisted state", () => {
   assert.equal(restored.patterns[0].tracks[0].length, 1);
   assert.equal(restored.trackParameters[0].volume, 0);
   assert.ok(restored.trackParameters[0].start < restored.trackParameters[0].end);
+});
+
+test("restores legacy global knob positions into pattern tracks", () => {
+  const raw = createInitialState();
+  raw.trackParameters[2].filter = 41;
+  raw.patterns.forEach((pattern) => {
+    delete pattern.tracks[2].parameters;
+  });
+
+  const restored = restoreState(raw);
+
+  assert.equal(restored.patterns[0].tracks[2].parameters.filter, 41);
+  assert.equal(restored.patterns[31].tracks[2].parameters.filter, 41);
 });
 
 test("defaults the global sidechain compressor amount to zero", () => {

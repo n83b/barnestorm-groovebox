@@ -26,6 +26,7 @@ Global project state contains:
 Each pattern owns eight tracks. Each pattern track owns:
 
 - A last-step value from 1–16
+- Nine saved knob positions
 - Sixteen step events
 
 Each event currently stores:
@@ -35,15 +36,21 @@ Each event currently stores:
 - MIDI velocity
 - Optional per-parameter automation values
 
-Track parameter data is global to the track rather than duplicated into every pattern. Pattern event and length data remain independent.
+Each pattern track stores its own nine knob positions. Moving a knob with Shift
+off updates those pattern-local values, so switching away and back restores the
+track exactly as it was last set in that pattern.
+
 With Shift toggled on, moving one of the nine selected-track knobs writes that
 parameter to the selected track's current playhead step. Playback merges those
-step values over the track's global parameter defaults before scheduling the
+step values over the pattern track's saved knob positions before scheduling the
 audio nodes and any new sample voice. A lit base dot on a knob indicates that
 the parameter has automation on at least one step of the selected track and
 pattern. Holding Stop while moving that knob removes its automation from all
 steps of that track and pattern. Mouse users can double-click Stop to latch this
-clearing modifier and click it once to release the lock.
+clearing modifier and click it once to release the lock. While latched, selecting
+a sample clears that track's sequence in the current pattern, and selecting a
+pattern clears all eight of its track sequences. These sequence clears preserve
+pattern lengths and saved knob positions.
 
 ## Timing
 

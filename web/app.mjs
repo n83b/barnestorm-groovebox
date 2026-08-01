@@ -4,11 +4,14 @@ import {
   PATTERN_NAMES,
   PATTERNS_PER_BANK,
   TRACKS,
+  clearPatternSequence,
   clearTrackAutomation,
+  clearTrackSequence,
   commitQueuedPattern,
   createInitialState,
   formatNote,
   getAutomatedTrackParameters,
+  getPatternTrackParameters,
   getSelectedPatternTrack,
   getTrackPlayhead,
   hasTrackAutomation,
@@ -19,8 +22,8 @@ import {
   setStepAutomation,
   setTrackLength,
   toggleStep
-} from "./state.mjs?v=11";
-import { AudioEngine } from "./audio-engine.mjs?v=10";
+} from "./state.mjs?v=14";
+import { AudioEngine } from "./audio-engine.mjs?v=12";
 import {
   getShiftModifierState,
   shouldToggleTransportFromKeydown,
@@ -119,8 +122,11 @@ function persistState() {
 }
 
 function initializeAudio() {
-  state.trackParameters.forEach((parameters, trackIndex) => {
-    audioEngine.setTrackParameters(trackIndex, parameters);
+  state.trackParameters.forEach((_, trackIndex) => {
+    audioEngine.setTrackParameters(
+      trackIndex,
+      getPatternTrackParameters(state, state.selectedPattern, trackIndex)
+    );
     audioEngine.setMuted(trackIndex, state.muted[trackIndex]);
   });
   audioEngine.setCompressor(state.compressor);
@@ -216,7 +222,9 @@ function renderTracks() {
       }
 
       button.addEventListener("click", () => {
-        if (shiftHeld) {
+        if (stopLocked) {
+          clearTrackSequence(state, state.selectedPattern, trackIndex);
+        } else if (shiftHeld) {
           state.muted[trackIndex] = !state.muted[trackIndex];
           audioEngine.setMuted(trackIndex, state.muted[trackIndex]);
         } else {
@@ -466,11 +474,24 @@ function renderPatterns() {
     button.setAttribute("aria-pressed", String(isCurrent));
     button.setAttribute("aria-label", `Pattern ${patternName}${isQueued ? ", queued" : ""}`);
     button.addEventListener("click", () => {
+      if (stopLocked) {
+        clearPatternSequence(state, patternIndex);
+        persistState();
+        renderPatterns();
+        if (patternIndex === state.selectedPattern) {
+          renderSteps();
+          renderParameters();
+        }
+        return;
+      }
+
       selectPattern(state, patternIndex, isPlaying);
       persistState();
       renderPatterns();
       if (!isPlaying) {
         renderSteps();
+        renderParameters();
+        syncPatternAudioParameters();
       }
     });
     return button;
@@ -500,6 +521,8 @@ function renderPatterns() {
     renderPatterns();
     if (!isPlaying) {
       renderSteps();
+      renderParameters();
+      syncPatternAudioParameters();
     }
   });
 
@@ -568,7 +591,7 @@ function renderGlobalControls() {
 
 function renderParameters() {
   const track = TRACKS[state.selectedTrack];
-  const parameters = state.trackParameters[state.selectedTrack];
+  const patternParameters = getSelectedPatternTrack(state).parameters;
 
   elements.selectedTrackName.textContent = `${state.selectedTrack + 1} · ${track.name}`;
   elements.selectedTrackName.parentElement.style.setProperty("--selected-color", track.color);
@@ -579,7 +602,7 @@ function renderParameters() {
         ...definition,
         automationKey: definition.key,
         value: () => {
-          if (!shiftHeld) return parameters[definition.key];
+          if (!shiftHeld) return patternParameters[definition.key];
           const patternTrack = getSelectedPatternTrack(state);
           const stepIndex = getTrackPlayhead(transportTick, patternTrack.length);
           return getAutomatedTrackParameters(
@@ -592,11 +615,11 @@ function renderParameters() {
         onChange: (value) => {
           if (stopHeld) {
             clearTrackAutomation(state, definition.key);
-            audioEngine.setTrackParameters(state.selectedTrack, parameters);
+            audioEngine.setTrackParameters(state.selectedTrack, patternParameters);
             persistState();
             updateParameterAutomationIndicators();
             renderSteps();
-            return parameters[definition.key];
+            return patternParameters[definition.key];
           }
 
           if (shiftHeld) {
@@ -617,14 +640,23 @@ function renderParameters() {
           }
 
           setParameter(state, definition.key, value);
-          audioEngine.setTrackParameters(state.selectedTrack, parameters);
+          audioEngine.setTrackParameters(state.selectedTrack, patternParameters);
           persistState();
-          return parameters[definition.key];
+          return patternParameters[definition.key];
         }
       })
     )
   );
   updateParameterAutomationIndicators();
+}
+
+function syncPatternAudioParameters() {
+  state.trackParameters.forEach((_, trackIndex) => {
+    audioEngine.setTrackParameters(
+      trackIndex,
+      getPatternTrackParameters(state, state.selectedPattern, trackIndex)
+    );
+  });
 }
 
 function updateParameterAutomationIndicators() {
@@ -716,14 +748,24 @@ function createKnob({
     if (event.button !== 0 && event.pointerType === "mouse") return;
     event.preventDefault();
     input.focus();
-    drag = { pointerId: event.pointerId, startY: event.clientY, startValue: value() };
+    drag = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startValue: value()
+    };
     knob.setPointerCapture(event.pointerId);
   });
 
   knob.addEventListener("pointermove", (event) => {
     if (!drag || drag.pointerId !== event.pointerId) return;
     const sensitivity = event.shiftKey ? 520 : 150;
-    const rawValue = drag.startValue + ((drag.startY - event.clientY) / sensitivity) * (max - min);
+    const horizontalDistance = event.clientX - drag.startX;
+    const verticalDistance = drag.startY - event.clientY;
+    const dragDistance = Math.abs(horizontalDistance) > Math.abs(verticalDistance)
+      ? horizontalDistance
+      : verticalDistance;
+    const rawValue = drag.startValue + (dragDistance / sensitivity) * (max - min);
     const roundedValue = Math.round(rawValue / step) * step;
     const nextValue = onChange(clamp(roundedValue, min, max));
     control.classList.toggle("is-automation-write", Boolean(automationKey && shiftHeld));
@@ -764,7 +806,7 @@ function bindTransport() {
     elements.stopButton.setAttribute(
       "aria-label",
       stopLocked
-        ? "Automation clear lock active, press to unlock"
+        ? "Clear lock active; select a sample or pattern to clear it, or press to unlock"
         : "Stop, hold to clear automation, double click to lock"
     );
   };
@@ -862,6 +904,7 @@ function stopPlayback() {
   isPlaying = false;
   transportTick = 0;
   audioEngine.stop();
+  syncPatternAudioParameters();
   renderTransport();
   renderSteps();
 }
@@ -869,10 +912,12 @@ function stopPlayback() {
 function handleAudioTick({ tick, patternIndex }) {
   transportTick = tick;
 
-  if (transportTick > 0 && transportTick % 16 === 0) {
+  const patternChanged = patternIndex !== state.selectedPattern;
+  if (transportTick > 0 && transportTick % 16 === 0 && patternChanged) {
     commitQueuedPattern(state, patternIndex);
     persistState();
     renderPatterns();
+    renderParameters();
   }
 
   if (transportTick % 4 === 0) pulseBeat();
@@ -914,7 +959,7 @@ function bindShift() {
         .forEach((control) => control.classList.remove("is-automation-write"));
       audioEngine.setTrackParameters(
         state.selectedTrack,
-        state.trackParameters[state.selectedTrack]
+        getPatternTrackParameters(state)
       );
     }
   };

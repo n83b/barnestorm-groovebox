@@ -1,18 +1,18 @@
-const SHELL_CACHE = "weekly-groovebox-shell-v3";
+const SHELL_CACHE = "weekly-groovebox-shell-v8";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./styles.css?v=15",
-  "./app.mjs?v=14",
-  "./audio-engine.mjs?v=10",
-  "./bootstrap.mjs?v=2",
+  "./app.mjs?v=19",
+  "./audio-engine.mjs?v=12",
+  "./bootstrap.mjs?v=7",
   "./install-mode.mjs",
   "./keyboard.mjs?v=3",
   "./layout.mjs",
   "./pwa.mjs?v=1",
   "./sequencer.mjs",
-  "./state.mjs?v=11",
+  "./state.mjs?v=14",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",

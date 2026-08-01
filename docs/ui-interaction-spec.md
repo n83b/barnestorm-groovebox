@@ -55,6 +55,10 @@ Avoid excessive gradients, decorative effects or DAW-style complexity.
 
 The interface should feel polished and physical, with buttons and knobs appearing slightly raised from the surface.
 
+All rotary knobs support either vertical or horizontal dragging. Up and right
+increase the value; down and left decrease it. The dominant movement axis is
+used so diagonal gestures do not change the sensitivity.
+
 Do not copy Roland branding, trademarks or exact product styling.
 
 ---
@@ -200,10 +204,12 @@ Shift on + move any selected-track knob = record that value on the current playh
 ```
 
 This applies to all nine selected-track controls. Recorded values belong to the
-current pattern and track, override the track's base value only on that step,
-and remain independent from automation in other patterns. If a parameter has
-automation on any step, the neutral dot at the base of that knob lights using
-the knob's own accent colour.
+current pattern and track, override that pattern track's saved knob position
+only on that step, and remain independent from automation in other patterns.
+With Shift off, moving a knob saves its ordinary position for the selected
+pattern and track, so returning to that pattern restores the last-set values.
+If a parameter has automation on any step, the neutral dot at the base of that
+knob lights using the knob's own accent colour.
 
 To clear one parameter's automation:
 
@@ -216,8 +222,17 @@ more knobs without holding the button, then click Stop once to release the
 lock. While locked, the Stop button remains visibly active and displays
 `CLEAR`.
 
+While Stop lock is active:
+
+- Tapping a sample selector clears that track's complete step sequence in the
+  currently selected pattern.
+- Tapping a pattern button clears all eight track sequences in that pattern.
+- Pattern lengths and saved knob positions are preserved.
+- The clicked sample or pattern is not selected, and Stop lock remains active
+  so multiple sequences can be cleared.
+
 Clearing automation affects only the selected pattern and track and does not
-change the knob's base value.
+change that pattern track's saved knob position.
 
 ---
 
@@ -1095,6 +1110,12 @@ Press Stop
 
 Double-click Stop
 → Lock automation-clear mode; click Stop once to unlock
+
+Stop lock + tap sample selector
+→ Clear that track's sequence in the current pattern
+
+Stop lock + tap pattern
+→ Clear all eight track sequences in that pattern
 
 Press Space from the page, a track knob, or the Play button
 → Start or stop playback

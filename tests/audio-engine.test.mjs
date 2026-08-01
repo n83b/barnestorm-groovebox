@@ -226,6 +226,7 @@ test("loads eight buffers and schedules the complete per-track signal path", asy
     fx: 50,
     fxDepth: 40
   });
+  Object.assign(state.patterns[0].tracks[4].parameters, state.trackParameters[4]);
   engine.setTrackParameters(4, state.trackParameters[4]);
   await engine.loadPack(pack);
   await engine.start({ getState: () => state });
@@ -255,8 +256,13 @@ test("loads eight buffers and schedules the complete per-track signal path", asy
   engine.stop();
 });
 
-test("schedules per-step automation for processing and sample playback", async () => {
+test("schedules per-step automation over pattern knob positions", async () => {
   const state = createInitialState();
+  Object.assign(state.patterns[0].tracks[4].parameters, {
+    volume: 55,
+    pan: 25,
+    resonance: 30
+  });
   state.patterns[0].tracks[4].steps[0].automation = {
     volume: 33,
     pan: -50,
@@ -264,7 +270,6 @@ test("schedules per-step automation for processing and sample playback", async (
     start: 25,
     end: 75,
     filter: 20,
-    resonance: 40,
     fx: 60,
     fxDepth: 70
   };
@@ -304,6 +309,13 @@ test("schedules per-step automation for processing and sample playback", async (
     bassStrip.delaySend.gain.events.some((event) =>
       event.type === "target"
       && event.value === 0.7
+      && event.when === 10.04
+    )
+  );
+  assert.ok(
+    bassStrip.filter.Q.events.some((event) =>
+      event.type === "target"
+      && Math.abs(event.value - 3.6) < 1e-12
       && event.when === 10.04
     )
   );
