@@ -8,12 +8,14 @@ import {
   clearTrackAutomation,
   clearTrackSequence,
   commitQueuedPattern,
+  copyPattern,
   createInitialState,
   formatNote,
   getAutomatedTrackParameters,
   getPatternTrackParameters,
   getSelectedPatternTrack,
   getTrackPlayhead,
+  hasPatternData,
   hasTrackAutomation,
   restoreState,
   selectBank,
@@ -73,6 +75,7 @@ let shiftHeld = false;
 let shiftToggled = false;
 let stopHeld = false;
 let stopLocked = false;
+let copiedPatternIndex = null;
 let saveStatusTimer = null;
 let editSession = null;
 let stageResizeFrame = null;
@@ -556,23 +559,51 @@ function renderPatterns() {
     const button = document.createElement("button");
     const isCurrent = state.selectedPattern === patternIndex;
     const isQueued = state.queuedPattern === patternIndex;
+    const containsData = hasPatternData(state, patternIndex);
+    const isCopySource = copiedPatternIndex === patternIndex;
 
     button.type = "button";
     button.className = "pattern-button";
     button.classList.toggle("is-current", isCurrent);
     button.classList.toggle("is-queued", isQueued);
+    button.classList.toggle("has-data", containsData);
+    button.classList.toggle("is-empty", !containsData);
+    button.classList.toggle("is-copy-source", isCopySource);
     button.textContent = patternName;
     button.setAttribute("aria-pressed", String(isCurrent));
-    button.setAttribute("aria-label", `Pattern ${patternName}${isQueued ? ", queued" : ""}`);
+    button.setAttribute(
+      "aria-label",
+      `Pattern ${patternName}, ${containsData ? "contains sequence data" : "empty"}${isQueued ? ", queued" : ""}${isCopySource ? ", copied and ready to paste" : ""}`
+    );
     button.addEventListener("click", () => {
       if (stopLocked) {
         clearPatternSequence(state, patternIndex);
+        copiedPatternIndex = null;
         persistState();
         renderPatterns();
         if (patternIndex === state.selectedPattern) {
           renderSteps();
           renderParameters();
         }
+        return;
+      }
+
+      if (shiftHeld) {
+        if (copiedPatternIndex == null) {
+          copiedPatternIndex = patternIndex;
+        } else if (copiedPatternIndex === patternIndex) {
+          copiedPatternIndex = null;
+        } else {
+          copyPattern(state, copiedPatternIndex, patternIndex);
+          copiedPatternIndex = null;
+          persistState();
+          if (patternIndex === state.selectedPattern) {
+            renderSteps();
+            renderParameters();
+            syncPatternAudioParameters();
+          }
+        }
+        renderPatterns();
         return;
       }
 
@@ -607,6 +638,13 @@ function renderPatterns() {
     })
   );
   overflow.addEventListener("click", () => {
+    if (shiftHeld || stopLocked) {
+      state.selectedBank = nextBankIndex;
+      persistState();
+      renderPatterns();
+      return;
+    }
+
     selectBank(state, nextBankIndex, isPlaying);
     persistState();
     renderPatterns();
@@ -1102,6 +1140,10 @@ function bindShift() {
       shiftToggled ? "Shift active, press to turn off" : "Shift, press to turn on"
     );
     if (wasShiftHeld && !shiftHeld) {
+      if (copiedPatternIndex != null) {
+        copiedPatternIndex = null;
+        renderPatterns();
+      }
       elements.parameterList
         .querySelectorAll(".is-automation-write")
         .forEach((control) => control.classList.remove("is-automation-write"));

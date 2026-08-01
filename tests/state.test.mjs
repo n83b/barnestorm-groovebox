@@ -9,11 +9,13 @@ import {
   clearTrackAutomation,
   clearTrackSequence,
   commitQueuedPattern,
+  copyPattern,
   createInitialState,
   formatNote,
   getAutomatedTrackParameters,
   getPatternTrackParameters,
   getTrackPlayhead,
+  hasPatternData,
   hasTrackAutomation,
   restoreState,
   selectBank,
@@ -188,6 +190,49 @@ test("clears all eight sequences in one pattern without changing another pattern
   assert.equal(state.patterns[0].tracks[2].length, 7);
   assert.equal(state.patterns[0].tracks[2].parameters.pan, -24);
   assert.equal(state.patterns[1].tracks[0].steps[2].active, true);
+});
+
+test("reports pattern data from active steps and empty state after clearing", () => {
+  const state = createInitialState();
+
+  assert.equal(hasPatternData(state, 0), true);
+  assert.equal(hasPatternData(state, 1), false);
+
+  state.patterns[1].tracks[6].steps[4].active = true;
+  assert.equal(hasPatternData(state, 1), true);
+
+  clearPatternSequence(state, 1);
+  assert.equal(hasPatternData(state, 1), false);
+});
+
+test("copies complete pattern state without sharing mutable track data", () => {
+  const state = createInitialState();
+  const source = state.patterns[0];
+  const destinationName = state.patterns[1].name;
+
+  source.tracks[4].length = 10;
+  source.tracks[4].parameters.filter = 42;
+  source.tracks[4].steps[3] = {
+    active: true,
+    note: 61,
+    velocity: 118,
+    automation: { pan: -35 }
+  };
+
+  copyPattern(state, 0, 1);
+
+  assert.equal(state.patterns[1].name, destinationName);
+  assert.deepEqual(state.patterns[1].tracks, source.tracks);
+  assert.notEqual(state.patterns[1].tracks[4], source.tracks[4]);
+  assert.notEqual(state.patterns[1].tracks[4].parameters, source.tracks[4].parameters);
+  assert.notEqual(state.patterns[1].tracks[4].steps[3], source.tracks[4].steps[3]);
+  assert.notEqual(
+    state.patterns[1].tracks[4].steps[3].automation,
+    source.tracks[4].steps[3].automation
+  );
+
+  source.tracks[4].steps[3].note = 72;
+  assert.equal(state.patterns[1].tracks[4].steps[3].note, 61);
 });
 
 test("creates four color-coded banks with eight numbered patterns each", () => {

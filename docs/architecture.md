@@ -53,6 +53,13 @@ a sample clears that track's sequence in the current pattern, and selecting a
 pattern clears all eight of its track sequences. These sequence clears preserve
 pattern lengths and saved knob positions.
 
+With Shift enabled, pattern buttons form a two-step copy workflow. The first
+pattern becomes a transient copy source and the second pattern receives a deep
+copy of all eight tracks, including steps, automation, lengths and saved knob
+positions. Pattern names and slot identities are never copied. A pattern is
+considered populated for display when at least one of its steps is active, so a
+sequence clear always returns it to the empty appearance.
+
 ## Timing
 
 The instrument uses a Web Audio look-ahead clock. A 25 ms scheduler fills the

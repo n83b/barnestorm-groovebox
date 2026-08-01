@@ -731,6 +731,13 @@ input:focus-visible {
   font-size: clamp(0.85rem, 1.55cqw, 1.45rem);
 }
 
+.pattern-button.is-empty:not(.is-current):not(.is-queued) {
+  border-color: #242727;
+  background: linear-gradient(145deg, #101212, #080909);
+  color: #545756;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.012);
+}
+
 .pattern-button.is-current {
   border-color: var(--bank-color, var(--orange));
   color: var(--bank-color, var(--orange));
@@ -747,6 +754,29 @@ input:focus-visible {
   border-radius: 3px;
   background: var(--bank-color, var(--orange));
   content: "";
+}
+
+.pattern-button.is-copy-source {
+  outline: 1px dashed rgba(255, 255, 255, 0.9);
+  outline-offset: -4px;
+}
+
+.pattern-button.is-copy-source::before {
+  position: absolute;
+  top: 3px;
+  right: 0;
+  left: 0;
+  color: #fff;
+  content: "COPY";
+  font-size: 0.34rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-align: center;
+}
+
+.pattern-button.is-copy-source:not(.is-current):not(.is-queued) {
+  color: #d7d9d7;
 }
 
 .pattern-button.is-queued {

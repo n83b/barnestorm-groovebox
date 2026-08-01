@@ -346,6 +346,30 @@ export function clearPatternSequence(state, patternIndex = state.selectedPattern
   return state;
 }
 
+export function hasPatternData(state, patternIndex = state.selectedPattern) {
+  const safePatternIndex = clampInteger(patternIndex, 0, state.patterns.length - 1);
+  return state.patterns[safePatternIndex].tracks.some((track) =>
+    track.steps.some((step) => step.active)
+  );
+}
+
+export function copyPattern(state, sourcePatternIndex, destinationPatternIndex) {
+  const safeSourceIndex = clampInteger(sourcePatternIndex, 0, state.patterns.length - 1);
+  const safeDestinationIndex = clampInteger(destinationPatternIndex, 0, state.patterns.length - 1);
+  const sourcePattern = state.patterns[safeSourceIndex];
+  const destinationPattern = state.patterns[safeDestinationIndex];
+
+  destinationPattern.tracks = sourcePattern.tracks.map((track) => ({
+    ...track,
+    parameters: { ...track.parameters },
+    steps: track.steps.map((step) => ({
+      ...step,
+      automation: { ...(step.automation ?? {}) }
+    }))
+  }));
+  return state;
+}
+
 export function getSelectedPatternTrack(state) {
   return state.patterns[state.selectedPattern].tracks[state.selectedTrack];
 }

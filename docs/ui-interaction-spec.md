@@ -429,6 +429,29 @@ All 32 pattern slots are implemented and store independent pattern state.
 
 ## Pattern behaviour
 
+With Shift enabled, pattern buttons provide copy and paste:
+
+1. Tap a pattern to mark it as the copy source.
+2. Tap a different pattern to paste the complete pattern into that slot.
+
+The copy-source pattern displays a subtle dashed inset outline and a small
+`COPY` label. Tapping the source again cancels the pending copy. The pasted
+pattern receives all eight tracks, including steps, notes, velocity, automation,
+track lengths and saved knob positions. Its pattern name and slot remain
+unchanged. Shift stays enabled after pasting.
+
+Pattern button fill communicates sequence occupancy:
+
+- The currently active pattern uses its bank colour, whether populated or empty.
+- Inactive populated patterns use the normal grey treatment.
+- Empty patterns use a visibly darker grey treatment.
+- Clearing a pattern with Stop lock changes it to the empty treatment immediately.
+
+A pattern counts as populated when at least one step on any track is active.
+Shift or Stop lock may be used with the bank overflow control to browse another
+bank without changing the active pattern, allowing cross-bank copy, paste and
+clear actions.
+
 Selecting a pattern should load that pattern’s complete state for all eight tracks.
 
 A pattern contains:
@@ -1093,6 +1116,9 @@ Tap sample selector
 
 Shift on + tap sample selector
 → Mute or unmute that track
+
+Shift on + tap pattern, then another pattern
+→ Copy the first complete pattern into the second slot
 
 Tap step
 → Enable or disable the step for the selected track
