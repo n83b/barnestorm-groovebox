@@ -10,7 +10,7 @@ Status: complete
 - Shared 16-step sequencer
 - Visual playhead and transport
 - Tempo and swing
-- Momentary Shift interactions
+- Toggle Shift interactions
 - Track mute and per-track last step
 - Four color-coded pattern banks with eight patterns each and queued switching
 - Per-track parameter controls

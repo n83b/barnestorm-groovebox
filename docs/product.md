@@ -161,7 +161,7 @@ The interface has been designed primarily for iPhone in landscape orientation.
 
 It should be comfortable to operate with both hands.
 
-The Shift button is positioned so it can be held with the right thumb while the left hand performs secondary actions such as muting tracks.
+The Shift button is positioned for the right thumb and toggles secondary actions on or off, leaving the left hand free for actions such as muting tracks.
 
 This hardware-like interaction model should be preserved throughout development.
 

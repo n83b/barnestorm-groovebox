@@ -36,7 +36,7 @@ Each event currently stores:
 - Optional per-parameter automation values
 
 Track parameter data is global to the track rather than duplicated into every pattern. Pattern event and length data remain independent.
-Holding Shift while moving one of the nine selected-track knobs writes that
+With Shift toggled on, moving one of the nine selected-track knobs writes that
 parameter to the selected track's current playhead step. Playback merges those
 step values over the track's global parameter defaults before scheduling the
 audio nodes and any new sample voice. A lit base dot on a knob indicates that

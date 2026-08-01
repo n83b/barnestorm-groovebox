@@ -21,7 +21,11 @@ import {
   toggleStep
 } from "./state.mjs?v=11";
 import { AudioEngine } from "./audio-engine.mjs?v=10";
-import { shouldToggleTransportFromKeydown } from "./keyboard.mjs?v=2";
+import {
+  getShiftModifierState,
+  shouldToggleTransportFromKeydown,
+  toggleShiftModifier
+} from "./keyboard.mjs?v=3";
 import { BASE_HEIGHT, BASE_WIDTH, calculateStageScale } from "./layout.mjs";
 
 const STORAGE_KEY = "weekly-groovebox-project-v1";
@@ -55,7 +59,7 @@ let isPlaying = false;
 let isStartingPlayback = false;
 let transportTick = 0;
 let shiftHeld = false;
-let shiftLocked = false;
+let shiftToggled = false;
 let stopHeld = false;
 let stopLocked = false;
 let saveStatusTimer = null;
@@ -888,24 +892,21 @@ function renderTransport() {
 }
 
 function bindShift() {
-  const doubleTapWindow = 320;
-  const maximumTapDuration = 180;
-  let pointerHeld = false;
-  let buttonKeyboardHeld = false;
   let physicalKeyboardHeld = false;
-  let pointerDownAt = 0;
-  let lastTapAt = 0;
 
   const updateShift = () => {
     const wasShiftHeld = shiftHeld;
-    shiftHeld = shiftLocked || pointerHeld || buttonKeyboardHeld || physicalKeyboardHeld;
+    shiftHeld = getShiftModifierState({
+      buttonToggled: shiftToggled,
+      keyboardHeld: physicalKeyboardHeld
+    });
     elements.shiftButton.classList.toggle("is-held", shiftHeld);
-    elements.shiftButton.classList.toggle("is-locked", shiftLocked);
+    elements.shiftButton.classList.toggle("is-locked", shiftToggled);
     elements.parameterList.classList.toggle("is-automation-armed", shiftHeld);
     elements.shiftButton.setAttribute("aria-pressed", String(shiftHeld));
     elements.shiftButton.setAttribute(
       "aria-label",
-      shiftLocked ? "Shift lock active, press to unlock" : "Hold Shift, or double tap to lock"
+      shiftToggled ? "Shift active, press to turn off" : "Shift, press to turn on"
     );
     if (wasShiftHeld && !shiftHeld) {
       elements.parameterList
@@ -918,55 +919,8 @@ function bindShift() {
     }
   };
 
-  const registerTap = (timestamp) => {
-    if (shiftLocked) {
-      shiftLocked = false;
-      lastTapAt = 0;
-    } else if (lastTapAt !== 0 && timestamp - lastTapAt <= doubleTapWindow) {
-      shiftLocked = true;
-      lastTapAt = 0;
-    } else {
-      lastTapAt = timestamp;
-    }
-  };
-
-  elements.shiftButton.addEventListener("pointerdown", (event) => {
-    event.preventDefault();
-    elements.shiftButton.setPointerCapture(event.pointerId);
-    pointerHeld = true;
-    pointerDownAt = event.timeStamp;
-    updateShift();
-  });
-  elements.shiftButton.addEventListener("pointerup", (event) => {
-    pointerHeld = false;
-    if (event.timeStamp - pointerDownAt <= maximumTapDuration) {
-      registerTap(event.timeStamp);
-    }
-    updateShift();
-  });
-  elements.shiftButton.addEventListener("pointercancel", () => {
-    pointerHeld = false;
-    updateShift();
-  });
-  elements.shiftButton.addEventListener("keydown", (event) => {
-    if ((event.key === " " || event.key === "Enter") && !event.repeat) {
-      buttonKeyboardHeld = true;
-      pointerDownAt = event.timeStamp;
-      updateShift();
-    }
-  });
-  elements.shiftButton.addEventListener("keyup", (event) => {
-    if (event.key === " " || event.key === "Enter") {
-      buttonKeyboardHeld = false;
-      if (event.timeStamp - pointerDownAt <= maximumTapDuration) {
-        registerTap(event.timeStamp);
-      }
-      updateShift();
-    }
-  });
-  elements.shiftButton.addEventListener("blur", () => {
-    pointerHeld = false;
-    buttonKeyboardHeld = false;
+  elements.shiftButton.addEventListener("click", () => {
+    shiftToggled = toggleShiftModifier(shiftToggled);
     updateShift();
   });
 
@@ -983,8 +937,6 @@ function bindShift() {
     }
   });
   window.addEventListener("blur", () => {
-    pointerHeld = false;
-    buttonKeyboardHeld = false;
     physicalKeyboardHeld = false;
     updateShift();
   });

@@ -12,7 +12,7 @@ The main workflow is:
 2. Program that track using the shared row of 16 steps.
 3. Adjust the selected track’s sound controls.
 4. Switch patterns when needed.
-5. Hold Shift to access secondary actions such as muting tracks.
+5. Toggle Shift to access secondary actions such as muting tracks.
 
 The final approved UI mockup should be treated as the primary visual reference. These notes define behaviour and clarify details that cannot be communicated by the static image alone.
 
@@ -178,24 +178,25 @@ Pressing Stop should:
 
 ## Shift button
 
-The Shift button is positioned at the far top-right so it can be held comfortably with the user’s right thumb.
+The Shift button is positioned at the far top-right so it can be toggled comfortably with the user’s right thumb.
 
-Shift is a momentary modifier, not a toggle.
+Shift is a toggle. Press once to turn it on and press again to turn it off. It
+must not use a double-tap gesture.
 
 Its primary initial action is:
 
 ```text
-Hold Shift + press a sample selector = mute or unmute that track
+Shift on + press a sample selector = mute or unmute that track
 ```
 
-The Shift button should visibly illuminate or depress while held.
+The Shift button should remain visibly illuminated while enabled.
 
 Other secondary Shift functions may be added later, but they should not be invented during the first implementation unless explicitly documented.
 
 The selected-track controls also use Shift for per-step automation:
 
 ```text
-Hold Shift + move any selected-track knob = record that value on the current playhead step
+Shift on + move any selected-track knob = record that value on the current playhead step
 ```
 
 This applies to all nine selected-track controls. Recorded values belong to the
@@ -289,7 +290,7 @@ Selecting a track must not trigger the sample unless an explicit preview gesture
 To mute or unmute a track:
 
 ```text
-Hold Shift and tap the track’s sample selector
+Turn Shift on and tap the track’s sample selector
 ```
 
 A muted track should:
@@ -839,7 +840,7 @@ Users can shorten the pattern length for an individual track to create evolving 
 To change a track's pattern length:
 
 1. Select the desired track.
-2. Hold the **Shift** button.
+2. Turn **Shift** on.
 3. Tap the step that should become the final step of the pattern.
 
 The tapped step becomes the **Last Step** for that track.
@@ -890,7 +891,7 @@ Where:
 
 To increase the pattern length:
 
-- Hold **Shift**.
+- Turn **Shift** on.
 - Tap a later step.
 
 All steps up to the newly selected Last Step become active again.
@@ -928,7 +929,7 @@ They encourage:
 The feature should remain discoverable through the simple gesture:
 
 ```text
-Hold Shift + Tap Step
+Shift on + Tap Step
 ```
 
 No additional menus or dedicated pattern-length controls should be required.
@@ -1074,7 +1075,7 @@ The simplicity of the interface is intentional.
 Tap sample selector
 → Select that track
 
-Hold Shift + tap sample selector
+Shift on + tap sample selector
 → Mute or unmute that track
 
 Tap step

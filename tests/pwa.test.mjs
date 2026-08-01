@@ -47,7 +47,7 @@ test("links the manifest, Apple metadata and app-shell registration", async () =
   assert.match(html, /rel="manifest" href="\.\/manifest\.webmanifest"/);
   assert.match(html, /name="apple-mobile-web-app-capable" content="yes"/);
   assert.match(html, /rel="apple-touch-icon"/);
-  assert.match(html, /src="\.\/bootstrap\.mjs\?v=1"/);
+  assert.match(html, /src="\.\/bootstrap\.mjs\?v=2"/);
   assert.doesNotMatch(html, /src="\.\/app\.mjs/);
   assert.match(html, /id="installGate"/);
   assert.match(registration, /serviceWorker\.register\("\.\/service-worker\.js"/);

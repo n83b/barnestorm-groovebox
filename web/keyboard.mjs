@@ -24,3 +24,11 @@ export function shouldToggleTransportFromKeydown(event) {
     && !hasModifier
     && (!hasInteractiveTarget || hasKnobTarget || hasPlayButtonTarget);
 }
+
+export function getShiftModifierState({ buttonToggled = false, keyboardHeld = false } = {}) {
+  return buttonToggled || keyboardHeld;
+}
+
+export function toggleShiftModifier(buttonToggled) {
+  return !buttonToggled;
+}

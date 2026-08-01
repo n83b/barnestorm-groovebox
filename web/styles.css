@@ -438,7 +438,7 @@ input:focus-visible {
   bottom: 4px;
   left: 5px;
   color: #fff;
-  content: "LOCK";
+  content: "ON";
   font-size: 0.48rem;
   font-weight: 700;
   letter-spacing: 0.16em;

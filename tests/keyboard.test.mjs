@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { shouldToggleTransportFromKeydown } from "../web/keyboard.mjs";
+import {
+  getShiftModifierState,
+  shouldToggleTransportFromKeydown,
+  toggleShiftModifier
+} from "../web/keyboard.mjs";
 
 const pageTarget = { closest: () => null };
 const interactiveTarget = { closest: () => ({}) };
@@ -82,6 +86,24 @@ test("uses Space for transport when the Play button retains focus", () => {
       key: " ",
       target: playButtonTarget
     }),
+    true
+  );
+});
+
+test("toggles the on-screen Shift modifier with each press", () => {
+  let buttonToggled = false;
+
+  buttonToggled = toggleShiftModifier(buttonToggled);
+  assert.equal(getShiftModifierState({ buttonToggled }), true);
+
+  buttonToggled = toggleShiftModifier(buttonToggled);
+  assert.equal(getShiftModifierState({ buttonToggled }), false);
+});
+
+test("keeps the physical Shift key momentary alongside the button toggle", () => {
+  assert.equal(getShiftModifierState({ keyboardHeld: true }), true);
+  assert.equal(
+    getShiftModifierState({ buttonToggled: true, keyboardHeld: false }),
     true
   );
 });
