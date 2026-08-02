@@ -61,12 +61,13 @@ does not change or queue the playing pattern. A newly browsed bank therefore has
 no selected button unless it contains the current pattern. Pressing one of its
 pattern buttons explicitly selects or queues that pattern.
 
-Shift can be latched with a tap or used momentarily by holding its button on a
-touch device. A second touch can use Shift actions immediately while the button
-is held, and releasing it returns to the previous unlocked state. The latched
-state adds an inset orange frame around the complete 1024 x 576 instrument so it
-remains obvious even when the Shift button is outside the user's focus. The same
-frame appears during a temporary touch hold and disappears on release.
+Shift can be latched with a single mouse or trackpad click. Touch input uses a
+double-tap to latch or unlatch Shift, while a single quick tap has no persistent
+effect. Holding the button on a touch device activates Shift momentarily; a
+second touch can use Shift actions immediately, and releasing the Shift finger
+returns to the previous lock state. A subtle inset orange frame appears around
+the complete 1024 x 576 instrument whenever Shift is active, including during a
+temporary touch hold.
 Track, pattern and pattern-bank buttons complete touch actions directly on
 pointer release, preserving the Shift state captured at touch-down instead of
 depending on Mobile Safari's later synthetic click. Mouse and keyboard

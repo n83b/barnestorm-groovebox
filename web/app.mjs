@@ -39,6 +39,7 @@ import {
 import {
   getShiftActionModifier,
   getShiftModifierState,
+  getTouchShiftReleaseAction,
   isDoubleTap,
   isMomentaryTouchShift,
   shouldToggleTransportFromKeydown,
@@ -1230,7 +1231,9 @@ function bindShift() {
   let touchPointerId = null;
   let touchStartedAt = 0;
   let touchUsedWhileHeld = false;
+  let previousTouchTap = null;
   let suppressNextTouchClick = false;
+  let suppressTouchClickTimer = null;
 
   const updateShift = () => {
     const wasShiftHeld = shiftHeld;
@@ -1247,10 +1250,10 @@ function bindShift() {
     elements.shiftButton.setAttribute(
       "aria-label",
       shiftToggled
-        ? "Shift locked, press to turn off"
+        ? "Shift locked; double-tap on touch or click to turn off"
         : shiftHeld
           ? "Shift active while held"
-          : "Shift, tap to lock or hold for momentary use"
+          : "Shift; double-tap on touch, click to lock, or hold for momentary use"
     );
     if (wasShiftHeld && !shiftHeld) {
       if (copiedPatternIndex != null) {
@@ -1268,7 +1271,12 @@ function bindShift() {
   };
 
   elements.shiftButton.addEventListener("pointerdown", (event) => {
-    if (event.pointerType !== "touch" || touchPointerId != null) return;
+    if (event.pointerType !== "touch") {
+      suppressNextTouchClick = false;
+      window.clearTimeout(suppressTouchClickTimer);
+      return;
+    }
+    if (touchPointerId != null) return;
     touchPointerId = event.pointerId;
     touchStartedAt = event.timeStamp;
     touchUsedWhileHeld = false;
@@ -1284,11 +1292,37 @@ function bindShift() {
 
   window.addEventListener("pointerup", (event) => {
     if (event.pointerId !== touchPointerId) return;
-    suppressNextTouchClick = isMomentaryTouchShift({
+    const momentary = isMomentaryTouchShift({
       pointerType: event.pointerType,
       duration: event.timeStamp - touchStartedAt,
       usedWhileHeld: touchUsedWhileHeld
     });
+    const currentTap = {
+      time: event.timeStamp,
+      x: event.clientX,
+      y: event.clientY,
+      pointerType: event.pointerType
+    };
+    const releaseAction = getTouchShiftReleaseAction(
+      previousTouchTap,
+      currentTap,
+      { momentary }
+    );
+
+    if (releaseAction === "toggle") {
+      shiftToggled = toggleShiftModifier(shiftToggled);
+      previousTouchTap = null;
+    } else if (releaseAction === "tap") {
+      previousTouchTap = currentTap;
+    } else {
+      previousTouchTap = null;
+    }
+
+    suppressNextTouchClick = true;
+    window.clearTimeout(suppressTouchClickTimer);
+    suppressTouchClickTimer = window.setTimeout(() => {
+      suppressNextTouchClick = false;
+    }, 500);
     touchPointerId = null;
     touchHeld = false;
     updateShift();
@@ -1299,12 +1333,14 @@ function bindShift() {
     touchPointerId = null;
     touchHeld = false;
     touchUsedWhileHeld = false;
+    previousTouchTap = null;
     updateShift();
   });
 
   elements.shiftButton.addEventListener("click", (event) => {
     if (suppressNextTouchClick) {
       suppressNextTouchClick = false;
+      window.clearTimeout(suppressTouchClickTimer);
       event.preventDefault();
       return;
     }
@@ -1329,6 +1365,9 @@ function bindShift() {
     touchPointerId = null;
     touchHeld = false;
     touchUsedWhileHeld = false;
+    previousTouchTap = null;
+    suppressNextTouchClick = false;
+    window.clearTimeout(suppressTouchClickTimer);
     updateShift();
   });
 

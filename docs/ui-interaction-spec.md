@@ -184,10 +184,11 @@ Pressing Stop should:
 
 The Shift button is positioned at the far top-right so it can be toggled comfortably with the user’s right thumb.
 
-Shift supports both latched and momentary operation. A quick tap turns Shift
-lock on, and another quick tap turns it off. On a touch device, holding the
-button activates Shift only while the finger remains down so the other hand can
-perform a secondary action. It must not use a double-tap gesture.
+Shift supports both latched and momentary operation. On desktop and laptop
+mouse or trackpad input, one click toggles Shift lock. On phones, tablets and
+other touch input, a double-tap toggles Shift lock while a single quick tap has
+no persistent effect. Holding the button on touch activates Shift only while
+the finger remains down so the other hand can perform a secondary action.
 Track selection and pattern changes must complete on touch release even while
 the transport is running; they must not depend on a delayed synthetic click.
 

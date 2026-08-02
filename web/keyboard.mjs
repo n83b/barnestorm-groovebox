@@ -53,6 +53,15 @@ export function isMomentaryTouchShift(
     && (usedWhileHeld || duration >= minimumHoldDuration);
 }
 
+export function getTouchShiftReleaseAction(
+  previousTap,
+  currentTap,
+  { momentary = false } = {}
+) {
+  if (momentary) return "momentary";
+  return isDoubleTap(previousTap, currentTap) ? "toggle" : "tap";
+}
+
 export function isDoubleTap(
   previousTap,
   currentTap,
