@@ -18,12 +18,13 @@ Global project state contains:
 
 - Selected track, playing pattern and independently browsed pattern bank
 - Queued pattern
-- Tempo, swing and global sidechain-compression amount
+- Active-pattern tempo, swing and sidechain-compression amount
 - Eight mute states
 - Per-track parameter values
 - Four pattern banks with eight patterns each
 
-Each pattern owns eight tracks. Each pattern track owns:
+Each pattern owns its Tempo, Swing and Comp values plus eight tracks. Each
+pattern track owns:
 
 - A last-step value from 1–16
 - Nine saved knob positions

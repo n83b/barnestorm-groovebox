@@ -23,6 +23,7 @@ import {
   restoreState,
   selectBank,
   selectPattern,
+  setPatternControl,
   setParameter,
   setStepNote,
   setStepAutomation,
@@ -65,6 +66,8 @@ test("creates thirty-two patterns with eight independent sixteen-step tracks", (
   assert.equal(state.patterns.length, 32);
   assert.equal(state.patterns[0].tracks.length, 8);
   assert.equal(state.patterns[0].tracks[0].steps.length, 16);
+  assert.deepEqual(state.patterns[0].controls, { tempo: 128, swing: 14, compressor: 0 });
+  assert.notEqual(state.patterns[0].controls, state.patterns[1].controls);
   assert.equal(state.patterns[0].tracks[0].parameters.volume, 78);
   assert.deepEqual(state.patterns[0].tracks[0].steps[0].automation, {});
   assert.notEqual(state.patterns[0].tracks[0], state.patterns[1].tracks[0]);
@@ -311,6 +314,7 @@ test("copies complete pattern state without sharing mutable track data", () => {
   const destinationName = state.patterns[1].name;
 
   source.tracks[4].length = 10;
+  source.controls = { tempo: 96, swing: 28, compressor: 44 };
   source.tracks[4].parameters.filter = 42;
   source.tracks[4].steps[3] = {
     active: true,
@@ -322,6 +326,8 @@ test("copies complete pattern state without sharing mutable track data", () => {
   copyPattern(state, 0, 1);
 
   assert.equal(state.patterns[1].name, destinationName);
+  assert.deepEqual(state.patterns[1].controls, source.controls);
+  assert.notEqual(state.patterns[1].controls, source.controls);
   assert.deepEqual(state.patterns[1].tracks, source.tracks);
   assert.notEqual(state.patterns[1].tracks[4], source.tracks[4]);
   assert.notEqual(state.patterns[1].tracks[4].parameters, source.tracks[4].parameters);
@@ -413,14 +419,46 @@ test("loops a ten-step track consistently without alternating with six steps", (
 
 test("queues pattern changes during playback and commits at the cycle boundary", () => {
   const state = createInitialState();
+  state.patterns[2].controls = { tempo: 92, swing: 30, compressor: 48 };
 
   selectPattern(state, 2, true);
   assert.equal(state.selectedPattern, 0);
   assert.equal(state.queuedPattern, 2);
+  assert.deepEqual(
+    { tempo: state.tempo, swing: state.swing, compressor: state.compressor },
+    { tempo: 128, swing: 14, compressor: 0 }
+  );
 
   commitQueuedPattern(state);
   assert.equal(state.selectedPattern, 2);
   assert.equal(state.queuedPattern, null);
+  assert.deepEqual(
+    { tempo: state.tempo, swing: state.swing, compressor: state.compressor },
+    { tempo: 92, swing: 30, compressor: 48 }
+  );
+});
+
+test("saves the top controls independently with each pattern", () => {
+  const state = createInitialState();
+
+  setPatternControl(state, "tempo", 105.5);
+  setPatternControl(state, "swing", 22);
+  setPatternControl(state, "compressor", 37);
+  selectPattern(state, 1, false);
+
+  assert.deepEqual(
+    { tempo: state.tempo, swing: state.swing, compressor: state.compressor },
+    { tempo: 128, swing: 14, compressor: 0 }
+  );
+
+  setPatternControl(state, "tempo", 142);
+  selectPattern(state, 0, false);
+
+  assert.deepEqual(
+    { tempo: state.tempo, swing: state.swing, compressor: state.compressor },
+    { tempo: 105.5, swing: 22, compressor: 37 }
+  );
+  assert.equal(state.patterns[1].controls.tempo, 142);
 });
 
 test("keeps sample start and end in a valid order", () => {
@@ -438,6 +476,9 @@ test("restores safe values from persisted state", () => {
   raw.tempo = 999;
   raw.swing = -12;
   raw.compressor = 130;
+  raw.patterns.forEach((pattern) => {
+    delete pattern.controls;
+  });
   raw.selectedTrack = 99;
   raw.patterns[0].tracks[0].length = 0;
   raw.trackParameters[0].volume = -50;

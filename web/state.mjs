@@ -63,6 +63,7 @@ export function createInitialState(packId = null, savedTrackRootNotes = []) {
   const trackRootNotes = normalizeTrackRootNotes(savedTrackRootNotes);
   const patterns = PATTERN_NAMES.map((patternName) => ({
     name: patternName,
+    controls: createDefaultPatternControls(),
     tracks: TRACKS.map((track, trackIndex) => {
       const steps = Array.from({ length: 16 }, (_, stepIndex) =>
         createStep(
@@ -126,8 +127,9 @@ export function restoreState(rawState) {
     const trackRootNotes = rawState.trackRootNotes
       ? normalizeTrackRootNotes(rawState.trackRootNotes)
       : TRACKS.map((track, trackIndex) => track.kind === "chromatic" ? 48 + trackIndex : null);
+    const legacyControls = restorePatternControls(rawState, fallback);
 
-    return {
+    const restoredState = {
       ...fallback,
       ...rawState,
       packId: normalizePackId(rawState.packId),
@@ -138,9 +140,7 @@ export function restoreState(rawState) {
       queuedPattern: rawState.queuedPattern == null
         ? null
         : clampInteger(rawState.queuedPattern, 0, PATTERN_NAMES.length - 1),
-      tempo: clampNumber(rawState.tempo, 40, 240),
-      swing: clampNumber(rawState.swing, 0, 60),
-      compressor: clampNumber(rawState.compressor, 0, 100),
+      ...legacyControls,
       trackRootNotes,
       muted: fallback.muted.map((defaultValue, index) => Boolean(rawState.muted?.[index] ?? defaultValue)),
       trackParameters,
@@ -148,6 +148,10 @@ export function restoreState(rawState) {
         ...defaultPattern,
         ...(rawState.patterns?.[patternIndex] ?? {}),
         name: defaultPattern.name,
+        controls: restorePatternControls(
+          rawState.patterns?.[patternIndex]?.controls,
+          legacyControls
+        ),
         tracks: defaultPattern.tracks.map((defaultTrack, trackIndex) => {
           const savedTrack = rawState.patterns?.[patternIndex]?.tracks?.[trackIndex];
           const parameters = restoreTrackParameters(
@@ -186,6 +190,8 @@ export function restoreState(rawState) {
         })
       }))
     };
+    applySelectedPatternControls(restoredState);
+    return restoredState;
   } catch {
     return fallback;
   }
@@ -252,6 +258,7 @@ export function selectPattern(state, patternIndex, isPlaying) {
   } else {
     state.selectedPattern = nextPattern;
     state.queuedPattern = null;
+    applySelectedPatternControls(state);
   }
 
   return state;
@@ -270,7 +277,23 @@ export function commitQueuedPattern(state, scheduledPattern = state.queuedPatter
     if (state.queuedPattern === state.selectedPattern) {
       state.queuedPattern = null;
     }
+    applySelectedPatternControls(state);
   }
+  return state;
+}
+
+export function setPatternControl(state, key, value) {
+  const ranges = {
+    tempo: [40, 240],
+    swing: [0, 60],
+    compressor: [0, 100]
+  };
+  if (!Object.prototype.hasOwnProperty.call(ranges, key)) return state;
+
+  const [minimum, maximum] = ranges[key];
+  const nextValue = clampNumber(value, minimum, maximum);
+  state.patterns[state.selectedPattern].controls[key] = nextValue;
+  state[key] = nextValue;
   return state;
 }
 
@@ -463,6 +486,7 @@ export function copyPattern(state, sourcePatternIndex, destinationPatternIndex) 
   const sourcePattern = state.patterns[safeSourceIndex];
   const destinationPattern = state.patterns[safeDestinationIndex];
 
+  destinationPattern.controls = { ...sourcePattern.controls };
   destinationPattern.tracks = sourcePattern.tracks.map((track) => ({
     ...track,
     parameters: { ...track.parameters },
@@ -471,7 +495,37 @@ export function copyPattern(state, sourcePatternIndex, destinationPatternIndex) 
       automation: { ...(step.automation ?? {}) }
     }))
   }));
+  if (safeDestinationIndex === state.selectedPattern) {
+    applySelectedPatternControls(state);
+  }
   return state;
+}
+
+function createDefaultPatternControls() {
+  return { tempo: 128, swing: 14, compressor: 0 };
+}
+
+function restorePatternControls(savedControls, fallbackControls) {
+  return {
+    tempo: clampNumber(savedControls?.tempo ?? fallbackControls.tempo, 40, 240),
+    swing: clampNumber(savedControls?.swing ?? fallbackControls.swing, 0, 60),
+    compressor: clampNumber(
+      savedControls?.compressor ?? fallbackControls.compressor,
+      0,
+      100
+    )
+  };
+}
+
+function applySelectedPatternControls(state) {
+  const controls = restorePatternControls(
+    state.patterns[state.selectedPattern]?.controls,
+    { tempo: state.tempo, swing: state.swing, compressor: state.compressor }
+  );
+  state.patterns[state.selectedPattern].controls = controls;
+  state.tempo = controls.tempo;
+  state.swing = controls.swing;
+  state.compressor = controls.compressor;
 }
 
 export function getSelectedPatternTrack(state) {

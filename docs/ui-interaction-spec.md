@@ -115,6 +115,9 @@ Long pack names should scale or truncate gracefully rather than causing the bann
 
 Tempo is controlled by a rotary knob.
 
+Its value is saved with the current pattern and restored when that pattern is
+selected again.
+
 Display the numeric BPM value directly below or near the knob.
 
 Expected range:
@@ -135,6 +138,9 @@ Tempo should support decimal values if the audio engine supports them.
 
 Swing is controlled by a rotary knob.
 
+Its value is saved with the current pattern and restored when that pattern is
+selected again.
+
 Display the current percentage directly below or near the knob.
 
 The current design shows:
@@ -148,6 +154,9 @@ A value of zero represents straight timing.
 ## Comp
 
 Comp is a global sidechain-compression amount shown as a purple rotary knob.
+
+Its value is saved with the current pattern and restored when that pattern is
+selected again.
 
 Display the current value as a percentage. A value of zero applies no ducking. As the value increases, each kick hit should progressively reduce the volume of the other seven sample tracks before they recover.
 

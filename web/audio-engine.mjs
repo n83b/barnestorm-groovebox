@@ -417,8 +417,8 @@ export class AudioEngine {
       });
 
       this.nextStepTime += getStepDurationSeconds(
-        snapshot.tempo,
-        snapshot.swing,
+        pattern.controls?.tempo ?? snapshot.tempo,
+        pattern.controls?.swing ?? snapshot.swing,
         this.transportTick
       );
       this.transportTick += 1;

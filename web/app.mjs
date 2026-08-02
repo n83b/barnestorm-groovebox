@@ -23,6 +23,7 @@ import {
   restoreState,
   selectBank,
   selectPattern,
+  setPatternControl,
   setParameter,
   setStepNote,
   setStepAutomation,
@@ -671,7 +672,9 @@ function renderPatterns() {
           if (patternIndex === state.selectedPattern) {
             renderSteps();
             renderParameters();
+            renderGlobalControls();
             syncPatternAudioParameters();
+            syncPatternGlobalAudio();
           }
         }
         renderPatterns();
@@ -684,7 +687,9 @@ function renderPatterns() {
       if (!isPlaying) {
         renderSteps();
         renderParameters();
+        renderGlobalControls();
         syncPatternAudioParameters();
+        syncPatternGlobalAudio();
       }
     });
     return button;
@@ -739,7 +744,7 @@ function renderGlobalControls() {
       value: () => state.tempo,
       format: (value) => value.toFixed(1),
       onChange: (value) => {
-        state.tempo = value;
+        setPatternControl(state, "tempo", value);
         persistState();
         return state.tempo;
       }
@@ -753,7 +758,7 @@ function renderGlobalControls() {
       value: () => state.swing,
       format: (value) => `${value}%`,
       onChange: (value) => {
-        state.swing = value;
+        setPatternControl(state, "swing", value);
         persistState();
         return state.swing;
       }
@@ -768,7 +773,7 @@ function renderGlobalControls() {
       format: (value) => `${value}%`,
       accent: "fx",
       onChange: (value) => {
-        state.compressor = value;
+        setPatternControl(state, "compressor", value);
         audioEngine.setCompressor(value);
         persistState();
         return state.compressor;
@@ -896,6 +901,10 @@ function syncPatternAudioParameters() {
       getPatternTrackParameters(state, state.selectedPattern, trackIndex)
     );
   });
+}
+
+function syncPatternGlobalAudio() {
+  audioEngine.setCompressor(state.compressor);
 }
 
 function updateParameterAutomationIndicators() {
@@ -1212,6 +1221,8 @@ function handleAudioTick({ tick, patternIndex }) {
     persistState();
     renderPatterns();
     renderParameters();
+    renderGlobalControls();
+    syncPatternGlobalAudio();
   }
 
   if (transportTick % 4 === 0) pulseBeat();
