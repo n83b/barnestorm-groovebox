@@ -628,13 +628,15 @@ The label beneath the knob shows the current cutoff percentage:
 0%–100%
 ```
 
-Initial supported type:
+The compact selector beneath the Filter knob offers:
 
 ```text
-Low-pass filter
+LPF
+HPF
 ```
 
-Additional filter types can be added later.
+Exactly one filter type is active for each track in each pattern. Changing
+patterns or tracks restores its saved choice.
 
 ## Resonance
 
@@ -644,26 +646,17 @@ Keep the maximum range musically useful and protect against extreme gain spikes.
 
 ## FX
 
-Selects the track effect.
-
-The approved mockup shows:
+The compact selector beneath the FX knob offers:
 
 ```text
-DELAY
+Delay
+Reverb
+Chorus
+Distortion
 ```
 
-FX is a selector rather than a simple continuous parameter.
-
-Possible future effects include:
-
-- Delay
-- Reverb
-- Distortion
-- Bit crusher
-- Chorus
-- Flanger
-
-Only effects actually implemented should appear in the selector.
+Exactly one effect is active for each track in each pattern. Changing patterns
+or tracks restores its saved choice. The FX knob shapes the selected effect.
 
 ## FX Depth
 

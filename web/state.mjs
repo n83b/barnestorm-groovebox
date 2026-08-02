@@ -18,6 +18,18 @@ export const BANKS = [
 
 export const PATTERNS_PER_BANK = 8;
 
+export const FILTER_TYPES = [
+  { value: "lowpass", label: "LPF" },
+  { value: "highpass", label: "HPF" }
+];
+
+export const FX_TYPES = [
+  { value: "delay", label: "Delay" },
+  { value: "reverb", label: "Reverb" },
+  { value: "chorus", label: "Chorus" },
+  { value: "distortion", label: "Distortion" }
+];
+
 export const PATTERN_NAMES = BANKS.flatMap((bank) =>
   Array.from({ length: PATTERNS_PER_BANK }, (_, index) => `${bank.name}${index + 1}`)
 );
@@ -30,7 +42,7 @@ export const PARAMETER_DEFINITIONS = [
   { key: "end", label: "End", min: 1, max: 100, step: 1, defaultValue: 100, format: (value) => `${value}%` },
   { key: "filter", label: "Filter", min: 0, max: 100, step: 1, defaultValue: 86, format: (value) => `${value}%` },
   { key: "resonance", label: "Resonance", min: 0, max: 100, step: 1, defaultValue: 18, format: (value) => `${value}%` },
-  { key: "fx", label: "FX", min: 0, max: 100, step: 1, defaultValue: 35, format: (value) => `${value}%`, sublabel: "Delay", accent: "fx" },
+  { key: "fx", label: "FX", min: 0, max: 100, step: 1, defaultValue: 35, format: (value) => `${value}%`, accent: "fx" },
   { key: "fxDepth", label: "FX Depth", min: 0, max: 100, step: 1, defaultValue: 24, format: (value) => `${value}%`, accent: "fx" }
 ];
 
@@ -53,9 +65,7 @@ export function createInitialState(packId = null, savedTrackRootNotes = []) {
     name: patternName,
     tracks: TRACKS.map((track, trackIndex) => ({
       length: 16,
-      parameters: Object.fromEntries(
-        PARAMETER_DEFINITIONS.map((parameter) => [parameter.key, parameter.defaultValue])
-      ),
+      parameters: createDefaultTrackParameters(),
       steps: Array.from({ length: 16 }, (_, stepIndex) =>
         createStep(
           trackIndex,
@@ -80,9 +90,7 @@ export function createInitialState(packId = null, savedTrackRootNotes = []) {
     compressor: 0,
     trackRootNotes,
     muted: TRACKS.map(() => false),
-    trackParameters: TRACKS.map(() =>
-      Object.fromEntries(PARAMETER_DEFINITIONS.map((parameter) => [parameter.key, parameter.defaultValue]))
-    ),
+    trackParameters: TRACKS.map(() => createDefaultTrackParameters()),
     patterns
   };
 }
@@ -231,6 +239,22 @@ export function setParameter(state, key, value) {
   if (key === "end") nextValue = Math.max(nextValue, parameters.start + 1);
 
   parameters[key] = nextValue;
+  return state;
+}
+
+export function setTrackMode(state, key, value) {
+  const options = key === "filterType"
+    ? FILTER_TYPES
+    : key === "fxType"
+      ? FX_TYPES
+      : null;
+  if (!options) return state;
+
+  getSelectedPatternTrack(state).parameters[key] = normalizeOption(
+    value,
+    options,
+    options[0].value
+  );
   return state;
 }
 
@@ -447,7 +471,32 @@ function restoreTrackParameters(savedParameters, defaults) {
     restored.start = Math.max(0, restored.end - 1);
   }
 
+  restored.filterType = normalizeOption(
+    savedParameters?.filterType ?? defaults.filterType,
+    FILTER_TYPES,
+    "lowpass"
+  );
+  restored.fxType = normalizeOption(
+    savedParameters?.fxType ?? defaults.fxType,
+    FX_TYPES,
+    "delay"
+  );
+
   return restored;
+}
+
+function createDefaultTrackParameters() {
+  return {
+    ...Object.fromEntries(
+      PARAMETER_DEFINITIONS.map((parameter) => [parameter.key, parameter.defaultValue])
+    ),
+    filterType: "lowpass",
+    fxType: "delay"
+  };
+}
+
+function normalizeOption(value, options, fallback) {
+  return options.some((option) => option.value === value) ? value : fallback;
 }
 
 function restoreStepAutomation(savedAutomation, baseParameters) {

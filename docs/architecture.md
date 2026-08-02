@@ -27,6 +27,7 @@ Each pattern owns eight tracks. Each pattern track owns:
 
 - A last-step value from 1–16
 - Nine saved knob positions
+- One filter type and one effect type
 - Sixteen step events
 
 Each event currently stores:
@@ -41,9 +42,11 @@ project and used as the initial note for every fresh or cleared step. Loading an
 older project migrates only untouched legacy default notes to those pack roots;
 notes that the user has edited remain unchanged.
 
-Each pattern track stores its own nine knob positions. Moving a knob with Shift
+Each pattern track stores its own nine knob positions plus its selected filter
+and effect types. Moving a knob with Shift
 off updates those pattern-local values, so switching away and back restores the
-track exactly as it was last set in that pattern.
+track exactly as it was last set in that pattern. Filter and effect selections
+are restored through the same pattern-local state.
 
 The visible pattern bank is navigation state, not a pattern selection. Cycling
 the bank overflow button only changes which eight pattern buttons are shown; it
@@ -66,8 +69,8 @@ pattern lengths and saved knob positions.
 
 With Shift enabled, pattern buttons form a two-step copy workflow. The first
 pattern becomes a transient copy source and the second pattern receives a deep
-copy of all eight tracks, including steps, automation, lengths and saved knob
-positions. Pattern names and slot identities are never copied. A pattern is
+copy of all eight tracks, including steps, automation, lengths, saved knob
+positions and selector choices. Pattern names and slot identities are never copied. A pattern is
 considered populated for display when at least one of its steps is active, so a
 sequence clear always returns it to the empty appearance.
 
@@ -169,15 +172,16 @@ horizon after an interruption.
 Each track owns a persistent Web Audio strip:
 
 ```text
-voice → low-pass filter → stereo pan → track gain → mute → sidechain gain
-                                               ↘ delay send/feedback ↗
+voice → LPF/HPF → stereo pan → track gain → mute → sidechain gain
+                                      ↘ selected FX send/return ↗
 ```
 
-The persistent nodes let volume, pan, cutoff, resonance and delay changes use
+The persistent nodes let volume, pan, cutoff, resonance and effect changes use
 short audio-parameter ramps instead of rebuilding live voices. Sample start and
 end remain per-voice playback bounds, with a short release ramp at the selected
-end point. The FX control shapes delay time and feedback while FX Depth controls
-the delay send.
+end point. The filter selector chooses low-pass or high-pass processing. The FX
+selector routes one of delay, reverb, chorus or distortion; the FX control
+shapes that effect and FX Depth controls its send amount.
 
 Kick events schedule gain ducking on the other seven track strips using the
 global Comp amount. All strips feed a conservatively staged master bus followed

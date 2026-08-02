@@ -1,5 +1,7 @@
 import {
   BANKS,
+  FILTER_TYPES,
+  FX_TYPES,
   PARAMETER_DEFINITIONS,
   PATTERN_NAMES,
   PATTERNS_PER_BANK,
@@ -23,6 +25,7 @@ import {
   selectPattern,
   setParameter,
   setStepAutomation,
+  setTrackMode,
   setTrackLength,
   toggleStep
 } from "./state.mjs?v=dev";
@@ -726,8 +729,8 @@ function renderParameters() {
   elements.selectedTrackName.parentElement.style.setProperty("--selected-color", track.color);
 
   elements.parameterList.replaceChildren(
-    ...PARAMETER_DEFINITIONS.map((definition) =>
-      createKnob({
+    ...PARAMETER_DEFINITIONS.map((definition) => {
+      const control = createKnob({
         ...definition,
         automationKey: definition.key,
         value: () => {
@@ -773,10 +776,61 @@ function renderParameters() {
           persistState();
           return patternParameters[definition.key];
         }
-      })
-    )
+      });
+
+      const selector = definition.key === "filter"
+        ? createModeSelector({
+            label: "Filter type",
+            options: FILTER_TYPES,
+            value: patternParameters.filterType,
+            onChange: (value) => setTrackMode(state, "filterType", value)
+          })
+        : definition.key === "fx"
+          ? createModeSelector({
+              label: "Effect type",
+              options: FX_TYPES,
+              value: patternParameters.fxType,
+              accent: "fx",
+              onChange: (value) => setTrackMode(state, "fxType", value)
+            })
+          : null;
+
+      if (selector) {
+        control.querySelector(".knob-value")?.replaceWith(selector);
+      }
+      return control;
+    })
   );
   updateParameterAutomationIndicators();
+}
+
+function createModeSelector({ label, options, value, onChange, accent = null }) {
+  const wrapper = document.createElement("span");
+  const select = document.createElement("select");
+
+  wrapper.className = "knob-selector-wrap";
+  if (accent === "fx") wrapper.classList.add("is-fx");
+  select.className = "knob-selector";
+  select.setAttribute("aria-label", label);
+  select.replaceChildren(
+    ...options.map((option) => {
+      const element = document.createElement("option");
+      element.value = option.value;
+      element.textContent = option.label;
+      return element;
+    })
+  );
+  select.value = value;
+  select.addEventListener("change", () => {
+    onChange(select.value);
+    audioEngine.setTrackParameters(
+      state.selectedTrack,
+      getPatternTrackParameters(state, state.selectedPattern, state.selectedTrack)
+    );
+    persistState();
+  });
+  wrapper.append(select);
+  return wrapper;
 }
 
 function syncPatternAudioParameters() {
@@ -819,7 +873,7 @@ function createKnob({
   bipolar = false,
   automationKey = null
 }) {
-  const control = document.createElement("label");
+  const control = document.createElement("div");
   const labelElement = document.createElement("span");
   const knob = document.createElement("span");
   const indicator = document.createElement("span");

@@ -1044,6 +1044,54 @@ input:focus-visible {
   font-size: clamp(0.58rem, 0.88cqw, 0.8rem);
 }
 
+.knob-selector-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 0;
+  color: #e8e8e5;
+}
+
+.knob-selector-wrap::after {
+  position: absolute;
+  right: max(2px, 8%);
+  border: 3px solid transparent;
+  border-top-color: currentColor;
+  content: "";
+  pointer-events: none;
+  transform: translateY(2px);
+}
+
+.knob-selector-wrap.is-fx {
+  color: var(--purple);
+}
+
+.knob-selector {
+  width: 100%;
+  min-width: 0;
+  min-height: 18px;
+  padding: 0 11px 0 2px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 3px;
+  outline-offset: 1px;
+  background: transparent;
+  color: inherit;
+  text-align: center;
+  text-align-last: center;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  font: inherit;
+  font-size: clamp(0.48rem, 0.72cqw, 0.68rem);
+  appearance: none;
+  cursor: pointer;
+}
+
+.knob-selector:focus-visible {
+  outline: 1px solid currentColor;
+}
+
 .global-controls .knob-control {
   grid-template-rows: auto 1fr auto;
 }

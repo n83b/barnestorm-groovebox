@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   BANKS,
+  FILTER_TYPES,
+  FX_TYPES,
   PARAMETER_DEFINITIONS,
   PATTERN_NAMES,
   TRACKS,
@@ -23,6 +25,7 @@ import {
   selectPattern,
   setParameter,
   setStepAutomation,
+  setTrackMode,
   setTrackLength,
   toggleStep
 } from "../web/state.mjs";
@@ -140,6 +143,30 @@ test("stores independent knob positions for each pattern and track", () => {
   assert.equal(getAutomatedTrackParameters(state, 0, 4, 7).filter, 52);
   assert.equal(getPatternTrackParameters(state, 1, 4).filter, 86);
   assert.equal(hasTrackAutomation(state, "filter"), false);
+});
+
+test("stores filter and effect selections independently per pattern and track", () => {
+  const state = createInitialState();
+  state.selectedTrack = 4;
+
+  setTrackMode(state, "filterType", "highpass");
+  setTrackMode(state, "fxType", "chorus");
+
+  assert.deepEqual(FILTER_TYPES.map((option) => option.label), ["LPF", "HPF"]);
+  assert.deepEqual(
+    FX_TYPES.map((option) => option.label),
+    ["Delay", "Reverb", "Chorus", "Distortion"]
+  );
+  assert.equal(getPatternTrackParameters(state, 0, 4).filterType, "highpass");
+  assert.equal(getPatternTrackParameters(state, 0, 4).fxType, "chorus");
+  assert.equal(getPatternTrackParameters(state, 1, 4).filterType, "lowpass");
+  assert.equal(getPatternTrackParameters(state, 1, 4).fxType, "delay");
+  assert.equal(getPatternTrackParameters(state, 0, 5).filterType, "lowpass");
+  assert.equal(getPatternTrackParameters(state, 0, 5).fxType, "delay");
+
+  const restored = restoreState(structuredClone(state));
+  assert.equal(getPatternTrackParameters(restored, 0, 4).filterType, "highpass");
+  assert.equal(getPatternTrackParameters(restored, 0, 4).fxType, "chorus");
 });
 
 test("keeps automated sample bounds valid and restores only known parameters", () => {
@@ -383,6 +410,8 @@ test("restores safe values from persisted state", () => {
   raw.trackParameters[0].volume = -50;
   raw.trackParameters[0].start = 99;
   raw.trackParameters[0].end = 1;
+  raw.patterns[0].tracks[0].parameters.filterType = "not-a-filter";
+  raw.patterns[0].tracks[0].parameters.fxType = "not-an-effect";
 
   const restored = restoreState(raw);
   assert.equal(restored.tempo, 240);
@@ -392,6 +421,8 @@ test("restores safe values from persisted state", () => {
   assert.equal(restored.patterns[0].tracks[0].length, 1);
   assert.equal(restored.trackParameters[0].volume, 0);
   assert.ok(restored.trackParameters[0].start < restored.trackParameters[0].end);
+  assert.equal(restored.patterns[0].tracks[0].parameters.filterType, "lowpass");
+  assert.equal(restored.patterns[0].tracks[0].parameters.fxType, "delay");
 });
 
 test("restores legacy global knob positions into pattern tracks", () => {

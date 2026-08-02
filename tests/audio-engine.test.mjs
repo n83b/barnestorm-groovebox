@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   AudioEngine,
+  createDistortionCurve,
   getFilterFrequency,
   getSampleWindow
 } from "../web/audio-engine.mjs";
@@ -272,6 +273,54 @@ test("loads eight buffers and schedules the complete per-track signal path", asy
   assert.equal(engine.limiter.ratio.value, 20);
 
   engine.stop();
+});
+
+test("routes one saved filter and effect type per pattern track", async () => {
+  const state = createInitialState();
+  Object.assign(state.patterns[0].tracks[4].parameters, {
+    filterType: "highpass",
+    fxType: "reverb",
+    fxDepth: 40
+  });
+  const engine = new AudioEngine({
+    AudioContextClass: FakeAudioContext,
+    fetchImpl: createFetch(),
+    setIntervalImpl: () => 1,
+    clearIntervalImpl: () => {},
+    setTimeoutImpl: () => 1,
+    clearTimeoutImpl: () => {}
+  });
+
+  engine.setTrackParameters(4, state.patterns[0].tracks[4].parameters);
+  await engine.loadPack(pack);
+  await engine.start({ getState: () => state });
+
+  const strip = engine.trackStrips[4];
+  assert.equal(strip.filter.type, "highpass");
+  assert.equal(strip.delaySend.gain.value, 0);
+  assert.equal(strip.reverbSend.gain.value, 0.4);
+  assert.equal(strip.chorusSend.gain.value, 0);
+  assert.equal(strip.distortionSend.gain.value, 0);
+
+  engine.setTrackParameters(4, {
+    ...state.patterns[0].tracks[4].parameters,
+    fxType: "distortion"
+  });
+  assert.ok(strip.reverbSend.gain.events.some((event) =>
+    event.type === "target" && event.value === 0
+  ));
+  assert.ok(strip.distortionSend.gain.events.some((event) =>
+    event.type === "target" && event.value === 0.4
+  ));
+});
+
+test("creates a bounded distortion transfer curve", () => {
+  const curve = createDistortionCurve(75, 128);
+
+  assert.equal(curve.length, 128);
+  assert.ok(curve[0] >= -1);
+  assert.ok(curve.at(-1) <= 1);
+  assert.ok(curve[96] > curve[64]);
 });
 
 test("schedules per-step automation over pattern knob positions", async () => {

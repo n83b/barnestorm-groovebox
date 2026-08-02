@@ -5,6 +5,7 @@ import {
   getStepEvents,
   validatePackManifest
 } from "./sequencer.mjs?v=dev";
+import { FILTER_TYPES, FX_TYPES } from "./state.mjs?v=dev";
 
 const SCHEDULE_INTERVAL_MS = 25;
 const SCHEDULE_AHEAD_SECONDS = 0.1;
@@ -18,6 +19,9 @@ const DELAY_MIN_SECONDS = 0.06;
 const DELAY_MAX_SECONDS = 0.48;
 const DELAY_MAX_FEEDBACK = 0.52;
 const DELAY_WET_GAIN = 0.62;
+const REVERB_MAX_WET_GAIN = 0.72;
+const CHORUS_WET_GAIN = 0.68;
+const DISTORTION_WET_GAIN = 0.56;
 const SIDECHAIN_ATTACK_SECONDS = 0.008;
 
 const DEFAULT_TRACK_PARAMETERS = {
@@ -29,8 +33,21 @@ const DEFAULT_TRACK_PARAMETERS = {
   filter: 86,
   resonance: 18,
   fx: 35,
-  fxDepth: 24
+  fxDepth: 24,
+  filterType: "lowpass",
+  fxType: "delay"
 };
+
+export function createDistortionCurve(amount, sampleCount = 1024) {
+  const drive = 1 + clampNumber(amount, 0, 100, 35) * 0.45;
+  const curve = new Float32Array(sampleCount);
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    const input = (index * 2) / (sampleCount - 1) - 1;
+    curve[index] = Math.tanh(input * drive) / Math.tanh(drive);
+  }
+  return curve;
+}
 
 export function getSampleWindow(buffer, startPercent, endPercent) {
   const bufferDuration = Math.max(0, Number(buffer?.duration) || 0);
@@ -90,6 +107,7 @@ export class AudioEngine {
     this.uiTimers = new Set();
     this.voices = new Set();
     this.previewVoice = null;
+    this.reverbImpulse = null;
     this.compressor = 0;
     this.muted = Array.from({ length: 8 }, () => false);
     this.trackParameters = Array.from(
@@ -428,8 +446,21 @@ export class AudioEngine {
     const delay = this.context.createDelay?.(DELAY_MAX_SECONDS + 0.1) ?? this.context.createGain();
     const delayFeedback = this.context.createGain();
     const delayWet = this.context.createGain();
+    const reverbSend = this.context.createGain();
+    const reverb = this.context.createConvolver?.() ?? this.context.createGain();
+    const reverbWet = this.context.createGain();
+    const chorusSend = this.context.createGain();
+    const chorusDelay = this.context.createDelay?.(0.05) ?? this.context.createGain();
+    const chorusWet = this.context.createGain();
+    const chorusLfo = this.context.createOscillator?.() ?? null;
+    const chorusLfoDepth = this.context.createGain();
+    const distortionSend = this.context.createGain();
+    const distortion = this.context.createWaveShaper?.() ?? this.context.createGain();
+    const distortionWet = this.context.createGain();
 
     if ("type" in filter) filter.type = "lowpass";
+    if ("buffer" in reverb) reverb.buffer = this.#createReverbImpulse();
+    if ("oversample" in distortion) distortion.oversample = "2x";
     input.connect(filter);
     filter.connect(panner);
     panner.connect(volume);
@@ -440,6 +471,23 @@ export class AudioEngine {
     delayWet.connect(muteGain);
     delay.connect(delayFeedback);
     delayFeedback.connect(delay);
+    volume.connect(reverbSend);
+    reverbSend.connect(reverb);
+    reverb.connect(reverbWet);
+    reverbWet.connect(muteGain);
+    volume.connect(chorusSend);
+    chorusSend.connect(chorusDelay);
+    chorusDelay.connect(chorusWet);
+    chorusWet.connect(muteGain);
+    if (chorusLfo && chorusDelay.delayTime) {
+      chorusLfo.connect(chorusLfoDepth);
+      chorusLfoDepth.connect(chorusDelay.delayTime);
+      chorusLfo.start();
+    }
+    volume.connect(distortionSend);
+    distortionSend.connect(distortion);
+    distortion.connect(distortionWet);
+    distortionWet.connect(muteGain);
     muteGain.connect(duckGain);
     duckGain.connect(this.masterGain);
 
@@ -453,7 +501,18 @@ export class AudioEngine {
       delaySend,
       delay,
       delayFeedback,
-      delayWet
+      delayWet,
+      reverbSend,
+      reverb,
+      reverbWet,
+      chorusSend,
+      chorusDelay,
+      chorusWet,
+      chorusLfo,
+      chorusLfoDepth,
+      distortionSend,
+      distortion,
+      distortionWet
     };
     this.trackStrips[trackIndex] = strip;
     this.#applyTrackParameters(trackIndex, true, strip);
@@ -476,17 +535,24 @@ export class AudioEngine {
     const pan = clampNumber(parameters.pan, -100, 100, 0) / 100;
     const filterFrequency = getFilterFrequency(parameters.filter, this.context.sampleRate);
     const resonance = (clampNumber(parameters.resonance, 0, 100, 18) / 100) * FILTER_MAX_Q;
-    const delayCharacter = clampNumber(parameters.fx, 0, 100, 35) / 100;
-    const delayDepth = clampNumber(parameters.fxDepth, 0, 100, 24) / 100;
+    const filterType = FILTER_TYPES.some((option) => option.value === parameters.filterType)
+      ? parameters.filterType
+      : "lowpass";
+    const fxType = FX_TYPES.some((option) => option.value === parameters.fxType)
+      ? parameters.fxType
+      : "delay";
+    const effectCharacter = clampNumber(parameters.fx, 0, 100, 35) / 100;
+    const effectDepth = clampNumber(parameters.fxDepth, 0, 100, 24) / 100;
     const delayTime = DELAY_MIN_SECONDS
-      + delayCharacter * (DELAY_MAX_SECONDS - DELAY_MIN_SECONDS);
-    const delayFeedback = 0.08 + delayCharacter * (DELAY_MAX_FEEDBACK - 0.08);
+      + effectCharacter * (DELAY_MAX_SECONDS - DELAY_MIN_SECONDS);
+    const delayFeedback = 0.08 + effectCharacter * (DELAY_MAX_FEEDBACK - 0.08);
 
     this.#setAudioParam(strip.volume.gain, volume, immediate, when, preserveFuture);
     if (strip.panner.pan) {
       this.#setAudioParam(strip.panner.pan, pan, immediate, when, preserveFuture);
     }
     if (strip.filter.frequency) {
+      if ("type" in strip.filter) strip.filter.type = filterType;
       this.#setAudioParam(
         strip.filter.frequency,
         filterFrequency,
@@ -516,7 +582,77 @@ export class AudioEngine {
     );
     this.#setAudioParam(
       strip.delaySend.gain,
-      delayDepth,
+      fxType === "delay" ? effectDepth : 0,
+      immediate,
+      when,
+      preserveFuture
+    );
+    this.#setAudioParam(
+      strip.reverbSend.gain,
+      fxType === "reverb" ? effectDepth : 0,
+      immediate,
+      when,
+      preserveFuture
+    );
+    this.#setAudioParam(
+      strip.reverbWet.gain,
+      0.28 + effectCharacter * (REVERB_MAX_WET_GAIN - 0.28),
+      immediate,
+      when,
+      preserveFuture
+    );
+    if (strip.chorusDelay.delayTime) {
+      this.#setAudioParam(
+        strip.chorusDelay.delayTime,
+        0.008 + effectCharacter * 0.014,
+        immediate,
+        when,
+        preserveFuture
+      );
+    }
+    if (strip.chorusLfo?.frequency) {
+      this.#setAudioParam(
+        strip.chorusLfo.frequency,
+        0.18 + effectCharacter * 1.65,
+        immediate,
+        when,
+        preserveFuture
+      );
+    }
+    this.#setAudioParam(
+      strip.chorusLfoDepth.gain,
+      0.0015 + effectCharacter * 0.0035,
+      immediate,
+      when,
+      preserveFuture
+    );
+    this.#setAudioParam(
+      strip.chorusSend.gain,
+      fxType === "chorus" ? effectDepth : 0,
+      immediate,
+      when,
+      preserveFuture
+    );
+    this.#setAudioParam(
+      strip.chorusWet.gain,
+      CHORUS_WET_GAIN,
+      immediate,
+      when,
+      preserveFuture
+    );
+    if ("curve" in strip.distortion) {
+      strip.distortion.curve = createDistortionCurve(effectCharacter * 100);
+    }
+    this.#setAudioParam(
+      strip.distortionSend.gain,
+      fxType === "distortion" ? effectDepth : 0,
+      immediate,
+      when,
+      preserveFuture
+    );
+    this.#setAudioParam(
+      strip.distortionWet.gain,
+      DISTORTION_WET_GAIN,
       immediate,
       when,
       preserveFuture
@@ -627,6 +763,24 @@ export class AudioEngine {
         parameter.value = floor;
       }
     }
+  }
+
+  #createReverbImpulse() {
+    if (typeof this.context.createBuffer !== "function") return null;
+    if (this.reverbImpulse) return this.reverbImpulse;
+
+    const duration = 1.65;
+    const length = Math.round(this.context.sampleRate * duration);
+    const impulse = this.context.createBuffer(2, length, this.context.sampleRate);
+    for (let channel = 0; channel < impulse.numberOfChannels; channel += 1) {
+      const data = impulse.getChannelData(channel);
+      for (let index = 0; index < length; index += 1) {
+        const decay = (1 - index / length) ** 2.4;
+        data[index] = (Math.random() * 2 - 1) * decay;
+      }
+    }
+    this.reverbImpulse = impulse;
+    return this.reverbImpulse;
   }
 
   #configureLimiter(limiter) {
