@@ -680,6 +680,8 @@ Distortion
 
 Exactly one effect is active for each track in each pattern. Changing patterns
 or tracks restores its saved choice. The FX knob shapes the selected effect.
+The native selector must remain open and usable while the sequence is playing;
+playhead rendering must not dismiss it on touch devices.
 
 ## FX Depth
 

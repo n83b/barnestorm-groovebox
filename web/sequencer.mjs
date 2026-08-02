@@ -5,6 +5,10 @@ export function shouldAuditionStepEdit({ kind, previousNote, nextNote }) {
   return kind === "chromatic" && previousNote !== nextNote;
 }
 
+export function shouldRenderStepGrid({ editingStep = false, modeSelectorOpen = false } = {}) {
+  return !editingStep && !modeSelectorOpen;
+}
+
 export function getStepDurationSeconds(tempo, swing, transportTick) {
   const safeTempo = clampNumber(tempo, 40, 240, 120);
   const safeSwing = clampNumber(swing, 0, 60, 0) / 100;

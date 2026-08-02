@@ -47,7 +47,7 @@ import {
   toggleShiftModifier
 } from "./keyboard.mjs?v=dev";
 import { BASE_HEIGHT, BASE_WIDTH, calculateStageScale } from "./layout.mjs?v=dev";
-import { shouldAuditionStepEdit } from "./sequencer.mjs?v=dev";
+import { shouldAuditionStepEdit, shouldRenderStepGrid } from "./sequencer.mjs?v=dev";
 
 const LEGACY_STORAGE_KEY = "weekly-groovebox-project-v1";
 const ACTIVE_PACK_STORAGE_KEY = "weekly-groovebox-active-pack-v1";
@@ -88,6 +88,7 @@ let stopLocked = false;
 let copiedPatternIndex = null;
 let saveStatusTimer = null;
 let editSession = null;
+let modeSelectorOpen = false;
 let stageResizeFrame = null;
 let activePackOffline = false;
 const audioEngine = new AudioEngine({ onStatusChange: handleAudioEngineStatus });
@@ -426,7 +427,10 @@ function createWaveform(trackIndex) {
 }
 
 function renderSteps() {
-  if (editSession) return;
+  if (!shouldRenderStepGrid({
+    editingStep: Boolean(editSession),
+    modeSelectorOpen
+  })) return;
 
   const patternTrack = getSelectedPatternTrack(state);
   const visiblePlayhead = getTrackPlayhead(transportTick, patternTrack.length);
@@ -882,6 +886,19 @@ function createModeSelector({ label, options, value, onChange, accent = null }) 
     })
   );
   select.value = value;
+  const pauseStepDisplay = () => {
+    modeSelectorOpen = true;
+  };
+  const resumeStepDisplay = () => {
+    if (!modeSelectorOpen) return;
+    modeSelectorOpen = false;
+    requestAnimationFrame(renderSteps);
+  };
+
+  select.addEventListener("focus", pauseStepDisplay);
+  select.addEventListener("pointerdown", pauseStepDisplay);
+  select.addEventListener("pointercancel", resumeStepDisplay);
+  select.addEventListener("blur", resumeStepDisplay);
   select.addEventListener("change", () => {
     onChange(select.value);
     audioEngine.setTrackParameters(
@@ -889,6 +906,7 @@ function createModeSelector({ label, options, value, onChange, accent = null }) 
       getPatternTrackParameters(state, state.selectedPattern, state.selectedTrack)
     );
     persistState();
+    resumeStepDisplay();
   });
   wrapper.append(select);
   return wrapper;
@@ -1230,7 +1248,7 @@ function handleAudioTick({ tick, patternIndex }) {
 }
 
 function pulseBeat() {
-  if (reducedMotion.matches) return;
+  if (reducedMotion.matches || modeSelectorOpen) return;
   elements.playButton.classList.remove("is-beat");
   requestAnimationFrame(() => elements.playButton.classList.add("is-beat"));
 }

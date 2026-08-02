@@ -5,6 +5,7 @@ import {
   getStepDurationSeconds,
   getStepEvents,
   shouldAuditionStepEdit,
+  shouldRenderStepGrid,
   validatePackManifest
 } from "../web/sequencer.mjs";
 import { createInitialState } from "../web/state.mjs";
@@ -36,6 +37,12 @@ test("auditions chromatic note changes but not velocity-only step edits", () => 
     previousNote: 48,
     nextNote: 49
   }), true);
+});
+
+test("pauses step-grid DOM refreshes while a native mode picker is open", () => {
+  assert.equal(shouldRenderStepGrid(), true);
+  assert.equal(shouldRenderStepGrid({ editingStep: true }), false);
+  assert.equal(shouldRenderStepGrid({ modeSelectorOpen: true }), false);
 });
 
 test("collects active events using each track's independent last step", () => {

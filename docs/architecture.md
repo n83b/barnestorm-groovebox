@@ -112,6 +112,11 @@ so the visible playhead follows the audio timeline instead of acting as its
 clock. Timing, event collection and playback-rate calculations live in
 `web/sequencer.mjs` and are deterministic under Node tests.
 
+While a native Filter or FX selector is open, audio scheduling continues but
+step-grid DOM replacement and the beat-pulse class update pause. This prevents
+iPhone's native option picker from being dismissed by transport-driven DOM
+changes; the visual playhead catches up as soon as the selector closes.
+
 ## Persistence
 
 The complete serialisable project state is stored in `localStorage` under a
