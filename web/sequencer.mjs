@@ -1,6 +1,10 @@
 export const STEPS_PER_PATTERN = 16;
 export const STEPS_PER_BEAT = 4;
 
+export function shouldAuditionStepEdit({ kind, previousNote, nextNote }) {
+  return kind === "chromatic" && previousNote !== nextNote;
+}
+
 export function getStepDurationSeconds(tempo, swing, transportTick) {
   const safeTempo = clampNumber(tempo, 40, 240, 120);
   const safeSwing = clampNumber(swing, 0, 60, 0) / 100;

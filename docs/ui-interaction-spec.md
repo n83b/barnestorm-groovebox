@@ -767,13 +767,11 @@ While holding an active step, dragging **up or down** adjusts the velocity store
 
 This allows expressive programming without adding additional controls or editing screens.
 
-## Velocity Preview
+## Velocity Feedback
 
-While adjusting velocity:
-
-- The preview note or drum hit updates immediately.
-- The playback volume reflects the current velocity.
-- Changes are heard in real time as the user drags.
+While adjusting velocity, update the displayed value and step intensity without
+auditioning or retriggering the sound. Chromatic note changes continue to
+audition immediately, but a velocity-only drag remains silent.
 
 ## Velocity Range
 

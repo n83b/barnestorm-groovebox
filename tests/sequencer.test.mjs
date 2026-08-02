@@ -4,6 +4,7 @@ import {
   getPlaybackRate,
   getStepDurationSeconds,
   getStepEvents,
+  shouldAuditionStepEdit,
   validatePackManifest
 } from "../web/sequencer.mjs";
 import { createInitialState } from "../web/state.mjs";
@@ -17,6 +18,24 @@ test("swing preserves the duration of each two-step pair", () => {
   assert.equal(straightPair, 0.25);
   assert.equal(swungPair, straightPair);
   assert.ok(getStepDurationSeconds(120, 24, 0) > getStepDurationSeconds(120, 24, 1));
+});
+
+test("auditions chromatic note changes but not velocity-only step edits", () => {
+  assert.equal(shouldAuditionStepEdit({
+    kind: "chromatic",
+    previousNote: 48,
+    nextNote: 48
+  }), false);
+  assert.equal(shouldAuditionStepEdit({
+    kind: "drum",
+    previousNote: 48,
+    nextNote: 49
+  }), false);
+  assert.equal(shouldAuditionStepEdit({
+    kind: "chromatic",
+    previousNote: 48,
+    nextNote: 49
+  }), true);
 });
 
 test("collects active events using each track's independent last step", () => {

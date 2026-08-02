@@ -48,6 +48,13 @@ body {
   touch-action: manipulation;
 }
 
+.groovebox,
+.groovebox * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 .pwa-checking .groovebox,
 .pwa-checking .orientation-notice {
   visibility: hidden;

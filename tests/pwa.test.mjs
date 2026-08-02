@@ -53,6 +53,13 @@ test("links the manifest, Apple metadata and app-shell registration", async () =
   assert.match(registration, /serviceWorker\.register\("\.\/service-worker\.js"/);
 });
 
+test("disables iOS long-press selection and callouts inside the instrument", async () => {
+  const stylesheet = await readFile(new URL("styles.css", webDirectory), "utf8");
+
+  assert.match(stylesheet, /\.groovebox,\s*\.groovebox \*\s*\{[^}]*-webkit-user-select:\s*none;/s);
+  assert.match(stylesheet, /\.groovebox,\s*\.groovebox \*\s*\{[^}]*-webkit-touch-callout:\s*none;/s);
+});
+
 test("requires Home Screen launch on mobile but not desktop", () => {
   const iphone = {
     userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)",

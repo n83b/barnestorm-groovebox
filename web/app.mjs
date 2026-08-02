@@ -38,6 +38,7 @@ import {
   toggleShiftModifier
 } from "./keyboard.mjs?v=dev";
 import { BASE_HEIGHT, BASE_WIDTH, calculateStageScale } from "./layout.mjs?v=dev";
+import { shouldAuditionStepEdit } from "./sequencer.mjs?v=dev";
 
 const LEGACY_STORAGE_KEY = "weekly-groovebox-project-v1";
 const ACTIVE_PACK_STORAGE_KEY = "weekly-groovebox-active-pack-v1";
@@ -511,25 +512,24 @@ function beginStepEdit(session) {
   session.button.classList.add("is-editing");
   const step = getSelectedPatternTrack(state).steps[session.stepIndex];
   session.lastPreviewAt = 0;
-  session.lastPreviewNote = null;
-  session.lastPreviewVelocity = null;
+  session.lastPreviewNote = step.note;
   updateEditBubble(session.button, step);
-  previewEditedStep(step, true);
 }
 
-function previewEditedStep(step, force = false) {
-  if (!editSession?.editing) return;
+function previewEditedStep(step) {
+  if (!editSession?.editing || !shouldAuditionStepEdit({
+    kind: TRACKS[state.selectedTrack].kind,
+    previousNote: editSession.lastPreviewNote,
+    nextNote: step.note
+  })) return;
 
   const now = performance.now();
-  const noteChanged = editSession.lastPreviewNote !== step.note;
-  const velocityChanged = editSession.lastPreviewVelocity !== step.velocity;
-  if (!force && (!noteChanged && !velocityChanged || now - editSession.lastPreviewAt < 35)) {
+  if (now - editSession.lastPreviewAt < 35) {
     return;
   }
 
   editSession.lastPreviewAt = now;
   editSession.lastPreviewNote = step.note;
-  editSession.lastPreviewVelocity = step.velocity;
   audioEngine.preview(state.selectedTrack, step.note, step.velocity).catch(() => {});
 }
 
