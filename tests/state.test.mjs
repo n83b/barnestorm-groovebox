@@ -24,6 +24,7 @@ import {
   selectBank,
   selectPattern,
   setParameter,
+  setStepNote,
   setStepAutomation,
   setTrackMode,
   setTrackLength,
@@ -81,6 +82,38 @@ test("uses each chromatic sample root note for fresh and cleared steps", () => {
 
   clearTrackSequence(state, 1, 4);
   assert.equal(state.patterns[1].tracks[4].steps.every((step) => step.note === 60), true);
+  assert.equal(state.patterns[1].tracks[4].steps.every((step) => !step.hasNoteData), true);
+  assert.equal(state.patterns[1].tracks[4].lastAddedNote, null);
+  assert.equal(restoreState(structuredClone(state)).patterns[1].tracks[4].lastAddedNote, null);
+});
+
+test("new chromatic steps inherit the previous entered note unless the sequence is empty", () => {
+  const state = createInitialState("test-pack", [null, null, null, null, 48, 48, 48, 48]);
+  state.selectedPattern = 1;
+  state.selectedTrack = 4;
+  const track = state.patterns[1].tracks[4];
+
+  toggleStep(state, 2);
+  assert.equal(track.steps[2].note, 48);
+  setStepNote(state, 2, 57);
+
+  toggleStep(state, 7);
+  assert.equal(track.steps[7].note, 57);
+  setStepNote(state, 7, 62);
+  toggleStep(state, 7);
+
+  toggleStep(state, 5);
+  assert.equal(track.steps[5].note, 62);
+  toggleStep(state, 5);
+
+  setStepNote(state, 2, 55);
+  toggleStep(state, 7);
+  assert.equal(track.steps[7].note, 62);
+
+  toggleStep(state, 7);
+  toggleStep(state, 2);
+  toggleStep(state, 10);
+  assert.equal(track.steps[10].note, 48);
 });
 
 test("migrates legacy default notes to pack roots without changing edited notes", () => {

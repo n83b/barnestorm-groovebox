@@ -24,6 +24,7 @@ import {
   selectBank,
   selectPattern,
   setParameter,
+  setStepNote,
   setStepAutomation,
   setTrackMode,
   setTrackLength,
@@ -463,7 +464,11 @@ function bindStepGesture(button, stepIndex) {
 
     step.velocity = clamp(Math.round(editSession.originalVelocity - deltaY * 1.15), 1, 127);
     if (TRACKS[state.selectedTrack].kind === "chromatic") {
-      step.note = clamp(Math.round(editSession.originalNote + deltaX / 11), 36, 72);
+      setStepNote(
+        state,
+        stepIndex,
+        clamp(Math.round(editSession.originalNote + deltaX / 11), 36, 72)
+      );
       const noteLabel = button.querySelector(".step-note-label");
       if (noteLabel) noteLabel.textContent = formatNote(step.note);
     }

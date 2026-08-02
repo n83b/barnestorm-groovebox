@@ -753,6 +753,11 @@ If the step already contains a note, editing begins from that note rather than r
 In a fresh or cleared pattern, each chromatic step begins at that track's root
 note declared by the active weekly pack manifest.
 
+When activating an untouched chromatic step in a non-empty track sequence, copy
+the track's most recently entered or edited note into that step. If the sequence
+is empty, use the manifest root note. A deactivated step retains its own note
+data and restores that note when activated again.
+
 ---
 
 # Velocity Editing

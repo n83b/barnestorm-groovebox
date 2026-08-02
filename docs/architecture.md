@@ -34,6 +34,7 @@ Each event currently stores:
 
 - Active state
 - MIDI note
+- Whether an untouched step has acquired note data
 - MIDI velocity
 - Optional per-parameter automation values
 
@@ -41,6 +42,12 @@ The pack manifest's root note for each chromatic sample is stored with the
 project and used as the initial note for every fresh or cleared step. Loading an
 older project migrates only untouched legacy default notes to those pack roots;
 notes that the user has edited remain unchanged.
+
+Each chromatic pattern track also remembers its most recently entered or edited
+note. Activating an untouched step inherits that note while the track sequence
+contains another active note. If the sequence is empty it receives the sample's
+manifest root note instead. Reactivating a step that already has note data keeps
+that step's own saved note.
 
 Each pattern track stores its own nine knob positions plus its selected filter
 and effect types. Moving a knob with Shift

@@ -63,18 +63,24 @@ export function createInitialState(packId = null, savedTrackRootNotes = []) {
   const trackRootNotes = normalizeTrackRootNotes(savedTrackRootNotes);
   const patterns = PATTERN_NAMES.map((patternName) => ({
     name: patternName,
-    tracks: TRACKS.map((track, trackIndex) => ({
-      length: 16,
-      parameters: createDefaultTrackParameters(),
-      steps: Array.from({ length: 16 }, (_, stepIndex) =>
+    tracks: TRACKS.map((track, trackIndex) => {
+      const steps = Array.from({ length: 16 }, (_, stepIndex) =>
         createStep(
           trackIndex,
           stepIndex,
           DEFAULT_STEPS[patternName]?.[track.name]?.includes(stepIndex) ?? false,
           trackRootNotes[trackIndex]
         )
-      )
-    }))
+      );
+      return {
+        length: 16,
+        parameters: createDefaultTrackParameters(),
+        lastAddedNote: track.kind === "chromatic" && steps.some((step) => step.active)
+          ? trackRootNotes[trackIndex]
+          : null,
+        steps
+      };
+    })
   }));
 
   return {
@@ -148,20 +154,34 @@ export function restoreState(rawState) {
             savedTrack?.parameters,
             trackParameters[trackIndex]
           );
+          const steps = defaultTrack.steps.map((defaultStep, stepIndex) => {
+            const savedStep = savedTrack?.steps?.[stepIndex];
+            const active = Boolean(savedStep?.active ?? defaultStep.active);
+            const note = clampInteger(savedStep?.note ?? defaultStep.note, 24, 96);
+            const hasNoteData = TRACKS[trackIndex].kind === "chromatic" && Boolean(
+              savedStep?.hasNoteData
+                ?? (active || note !== trackRootNotes[trackIndex])
+            );
+            return {
+              ...defaultStep,
+              ...(savedStep ?? {}),
+              active,
+              note,
+              hasNoteData,
+              velocity: clampInteger(savedStep?.velocity ?? defaultStep.velocity, 1, 127),
+              automation: restoreStepAutomation(
+                savedStep?.automation,
+                parameters
+              )
+            };
+          });
           return {
             length: clampInteger(savedTrack?.length ?? defaultTrack.length, 1, 16),
             parameters,
-            steps: defaultTrack.steps.map((defaultStep, stepIndex) => ({
-              ...defaultStep,
-              ...(savedTrack?.steps?.[stepIndex] ?? {}),
-              active: Boolean(savedTrack?.steps?.[stepIndex]?.active ?? defaultStep.active),
-              note: clampInteger(savedTrack?.steps?.[stepIndex]?.note ?? defaultStep.note, 24, 96),
-              velocity: clampInteger(savedTrack?.steps?.[stepIndex]?.velocity ?? defaultStep.velocity, 1, 127),
-              automation: restoreStepAutomation(
-                savedTrack?.steps?.[stepIndex]?.automation,
-                parameters
-              )
-            }))
+            lastAddedNote: TRACKS[trackIndex].kind === "chromatic"
+              ? restoreLastAddedNote(savedTrack?.lastAddedNote, steps)
+              : null,
+            steps
           };
         })
       }))
@@ -179,7 +199,33 @@ export function toggleStep(state, stepIndex) {
   const track = getSelectedPatternTrack(state);
   if (stepIndex < 0 || stepIndex >= track.length) return state;
 
-  track.steps[stepIndex].active = !track.steps[stepIndex].active;
+  const step = track.steps[stepIndex];
+  if (!step.active && TRACKS[state.selectedTrack].kind === "chromatic") {
+    const sequenceHasNoteData = track.steps.some((candidate) =>
+      candidate.active && candidate.hasNoteData
+    );
+    if (!step.hasNoteData) {
+      step.note = sequenceHasNoteData
+        ? track.lastAddedNote ?? getLastActiveNote(track.steps) ?? state.trackRootNotes[state.selectedTrack]
+        : state.trackRootNotes[state.selectedTrack];
+      step.hasNoteData = true;
+    }
+    track.lastAddedNote = step.note;
+  }
+
+  step.active = !step.active;
+  return state;
+}
+
+export function setStepNote(state, stepIndex, note) {
+  if (TRACKS[state.selectedTrack].kind !== "chromatic") return state;
+
+  const track = getSelectedPatternTrack(state);
+  const safeStepIndex = clampInteger(stepIndex, 0, track.length - 1);
+  const step = track.steps[safeStepIndex];
+  step.note = clampInteger(note, 24, 96);
+  step.hasNoteData = true;
+  track.lastAddedNote = step.note;
   return state;
 }
 
@@ -363,6 +409,7 @@ export function clearTrackSequence(
   patternTrack.steps = Array.from({ length: 16 }, (_, stepIndex) =>
     createStep(safeTrackIndex, stepIndex, false, state.trackRootNotes?.[safeTrackIndex])
   );
+  patternTrack.lastAddedNote = null;
   return state;
 }
 
@@ -381,9 +428,13 @@ export function applyPackRootNotes(state, manifestTracks) {
     if (previousRootNote === nextRootNote) return;
 
     state.patterns.forEach((pattern) => {
-      pattern.tracks[trackIndex].steps.forEach((step) => {
+      const patternTrack = pattern.tracks[trackIndex];
+      patternTrack.steps.forEach((step) => {
         if (step.note === previousRootNote) step.note = nextRootNote;
       });
+      if (patternTrack.lastAddedNote === previousRootNote) {
+        patternTrack.lastAddedNote = nextRootNote;
+      }
     });
   });
 
@@ -438,9 +489,24 @@ function createStep(trackIndex, stepIndex, active = false, rootNote = 48) {
     note: TRACKS[trackIndex].kind === "chromatic"
       ? clampInteger(rootNote, 24, 96)
       : 48,
+    hasNoteData: TRACKS[trackIndex].kind === "chromatic" && active,
     velocity: stepIndex % 4 === 0 ? 112 : 92,
     automation: {}
   };
+}
+
+function restoreLastAddedNote(savedNote, steps) {
+  if (savedNote != null && savedNote !== "" && Number.isFinite(Number(savedNote))) {
+    return clampInteger(savedNote, 24, 96);
+  }
+  return getLastActiveNote(steps);
+}
+
+function getLastActiveNote(steps) {
+  for (let index = steps.length - 1; index >= 0; index -= 1) {
+    if (steps[index].active && steps[index].hasNoteData) return steps[index].note;
+  }
+  return null;
 }
 
 function normalizeTrackRootNotes(savedTrackRootNotes) {
