@@ -186,9 +186,10 @@ The Shift button is positioned at the far top-right so it can be toggled comfort
 
 Shift supports both latched and momentary operation. On desktop and laptop
 mouse or trackpad input, one click toggles Shift lock. On phones, tablets and
-other touch input, a double-tap toggles Shift lock while a single quick tap has
-no persistent effect. Holding the button on touch activates Shift only while
-the finger remains down so the other hand can perform a secondary action.
+other touch input, a double-tap enables Shift lock and a single tap disables it.
+While unlocked, one quick tap has no persistent effect. Holding the button on
+touch activates Shift only while the finger remains down so the other hand can
+perform a secondary action.
 Track selection and pattern changes must complete on touch release even while
 the transport is running; they must not depend on a delayed synthetic click.
 

@@ -104,14 +104,21 @@ test("toggles the desktop on-screen Shift modifier with each click", () => {
   assert.equal(getShiftModifierState({ buttonToggled }), false);
 });
 
-test("requires a double tap to toggle touch Shift while preserving holds", () => {
+test("double-taps to lock touch Shift and single-taps to unlock", () => {
   const firstTap = { time: 1000, x: 120, y: 80, pointerType: "touch" };
   const secondTap = { time: 1260, x: 124, y: 82, pointerType: "touch" };
 
   assert.equal(getTouchShiftReleaseAction(null, firstTap), "tap");
   assert.equal(getTouchShiftReleaseAction(firstTap, secondTap), "toggle");
   assert.equal(
-    getTouchShiftReleaseAction(firstTap, secondTap, { momentary: true }),
+    getTouchShiftReleaseAction(null, firstTap, { locked: true }),
+    "toggle"
+  );
+  assert.equal(
+    getTouchShiftReleaseAction(firstTap, secondTap, {
+      locked: true,
+      momentary: true
+    }),
     "momentary"
   );
 });

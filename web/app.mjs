@@ -1250,7 +1250,7 @@ function bindShift() {
     elements.shiftButton.setAttribute(
       "aria-label",
       shiftToggled
-        ? "Shift locked; double-tap on touch or click to turn off"
+        ? "Shift locked; tap on touch or click to turn off"
         : shiftHeld
           ? "Shift active while held"
           : "Shift; double-tap on touch, click to lock, or hold for momentary use"
@@ -1306,7 +1306,7 @@ function bindShift() {
     const releaseAction = getTouchShiftReleaseAction(
       previousTouchTap,
       currentTap,
-      { momentary }
+      { momentary, locked: shiftToggled }
     );
 
     if (releaseAction === "toggle") {

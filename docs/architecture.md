@@ -62,8 +62,9 @@ no selected button unless it contains the current pattern. Pressing one of its
 pattern buttons explicitly selects or queues that pattern.
 
 Shift can be latched with a single mouse or trackpad click. Touch input uses a
-double-tap to latch or unlatch Shift, while a single quick tap has no persistent
-effect. Holding the button on a touch device activates Shift momentarily; a
+double-tap to latch Shift and a single tap to unlatch it; while unlocked, one
+quick tap has no persistent effect. Holding the button on a touch device
+activates Shift momentarily; a
 second touch can use Shift actions immediately, and releasing the Shift finger
 returns to the previous lock state. A subtle inset orange frame appears around
 the complete 1024 x 576 instrument whenever Shift is active, including during a
