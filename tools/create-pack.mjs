@@ -71,10 +71,19 @@ export async function createPack({
   pointerFile = DEFAULT_POINTER_FILE,
   name,
   license = "All rights reserved",
-  rootNote = 48
+  rootNote = 48,
+  packWeek
 }) {
   const directory = resolvePackDirectory(packDirectory);
   const metadata = parsePackDirectoryName(basename(directory));
+  const pointerPath = pointerFile instanceof URL ? fileURLToPath(pointerFile) : resolve(pointerFile);
+  const manifestPath = resolve(directory, "manifest.json");
+  const displayWeek = await resolvePackWeek({
+    explicitWeek: packWeek,
+    manifestPath,
+    packId: metadata.id,
+    pointerPath
+  });
   const safeRootNote = Number(rootNote);
   if (!Number.isInteger(safeRootNote) || safeRootNote < 0 || safeRootNote > 127) {
     throw new Error("Chromatic root note must be a MIDI value from 0 to 127.");
@@ -104,13 +113,12 @@ export async function createPack({
     schemaVersion: 1,
     id: metadata.id,
     year: metadata.year,
-    week: metadata.week,
+    calendarWeek: metadata.week,
+    week: displayWeek,
     name: name || metadata.name,
     license,
     tracks
   };
-  const pointerPath = pointerFile instanceof URL ? fileURLToPath(pointerFile) : resolve(pointerFile);
-  const manifestPath = resolve(directory, "manifest.json");
   const manifestUrl = relative(dirname(pointerPath), manifestPath).split(sep).join("/");
   const pointer = {
     schemaVersion: 1,
@@ -124,6 +132,46 @@ export async function createPack({
   await writeJsonAtomic(pointerPath, pointer);
   await validatePublishedPack(pathToFileURL(pointerPath));
   return { directory, manifestPath, pointerPath, manifest, pointer };
+}
+
+async function resolvePackWeek({ explicitWeek, manifestPath, packId, pointerPath }) {
+  if (explicitWeek != null) return validatePackWeek(explicitWeek);
+
+  const existingManifest = await readJson(manifestPath);
+  if (existingManifest?.id === packId && existingManifest.week != null) {
+    return validatePackWeek(existingManifest.week);
+  }
+
+  const pointer = await readJson(pointerPath);
+  if (pointer?.manifestUrl) {
+    const pointerUrl = pathToFileURL(pointerPath);
+    const currentManifest = await readJson(new URL(pointer.manifestUrl, pointerUrl));
+    if (currentManifest?.id === packId && currentManifest.week != null) {
+      return validatePackWeek(currentManifest.week);
+    }
+    if (currentManifest?.week != null) {
+      return validatePackWeek(Number(currentManifest.week) + 1);
+    }
+  }
+
+  return 1;
+}
+
+function validatePackWeek(value) {
+  const week = Number(value);
+  if (!Number.isInteger(week) || week < 1 || week > 9999) {
+    throw new Error("Product pack week must be an integer from 1 to 9999.");
+  }
+  return week;
+}
+
+async function readJson(filename) {
+  try {
+    return JSON.parse(await readFile(filename, "utf8"));
+  } catch (error) {
+    if (error?.code === "ENOENT") return null;
+    throw error;
+  }
 }
 
 function resolvePackDirectory(source) {
@@ -172,6 +220,7 @@ function parseArguments(argumentsList) {
     if (flag === "--name") options.name = value;
     else if (flag === "--license") options.license = value;
     else if (flag === "--root-note") options.rootNote = Number(value);
+    else if (flag === "--pack-week") options.packWeek = Number(value);
     else throw new Error(`Unknown option: ${flag}`);
   }
   if (positional.length > 1) {

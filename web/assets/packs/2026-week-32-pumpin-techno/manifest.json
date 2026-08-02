@@ -2,7 +2,8 @@
   "schemaVersion": 1,
   "id": "2026-week-32-pumpin-techno",
   "year": 2026,
-  "week": 32,
+  "calendarWeek": 32,
+  "week": 2,
   "name": "Pumpin Techno",
   "license": "All rights reserved",
   "tracks": [

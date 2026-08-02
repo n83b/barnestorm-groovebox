@@ -86,7 +86,7 @@ export function validatePackManifest(pack) {
     schemaVersion: 1,
     id: String(pack.id ?? "weekly-pack"),
     year: pack.year == null ? null : clampInteger(pack.year, 2020, 9999, 2020),
-    week: clampInteger(pack.week, 1, 53, 1),
+    week: clampInteger(pack.week, 1, 9999, 1),
     name: String(pack.name ?? "Untitled Pack"),
     license: String(pack.license ?? ""),
     tracks

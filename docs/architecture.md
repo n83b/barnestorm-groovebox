@@ -131,6 +131,10 @@ writes the manifest and sample buffers as one IndexedDB record. This makes pack
 availability atomic: an interrupted download cannot displace the last complete
 pack.
 
+Each manifest keeps the ISO `calendarWeek` used to calculate its release window
+separate from the monotonically increasing `week` displayed by the product. A
+pack's directory and id remain immutable even if the visible sequence is reset.
+
 At launch the current pointer is preferred. When the network or current pack is
 unavailable, the project-pinned cached pack is used, followed by the newest
 complete cached pack as a final fallback. Foreground checks may pre-download a

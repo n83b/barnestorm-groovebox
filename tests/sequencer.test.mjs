@@ -88,6 +88,7 @@ test("requires four drum and four chromatic samples in a weekly pack", () => {
   };
 
   assert.equal(validatePackManifest(pack).tracks.length, 8);
+  assert.equal(validatePackManifest({ ...pack, week: 54 }).week, 54);
   assert.throws(
     () => validatePackManifest({ ...pack, tracks: pack.tracks.slice(0, 7) }),
     /exactly eight/

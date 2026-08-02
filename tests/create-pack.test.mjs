@@ -57,6 +57,8 @@ test("creates a complete manifest and current pointer from eight named WAV files
   const pointer = JSON.parse(await readFile(pointerFile, "utf8"));
 
   assert.equal(manifest.id, "2026-week-32-found-signals");
+  assert.equal(manifest.calendarWeek, 32);
+  assert.equal(manifest.week, 1);
   assert.equal(manifest.name, "Found Signals");
   assert.equal(manifest.license, "Test license");
   assert.equal(manifest.tracks.length, 8);
@@ -66,6 +68,21 @@ test("creates a complete manifest and current pointer from eight named WAV files
   assert.equal(pointer.packId, manifest.id);
   assert.equal(pointer.manifestUrl, "./2026-week-32-found-signals/manifest.json");
   assert.equal(pointer.releasedAt, "2026-08-03T00:00:00.000Z");
+
+  const nextPackDirectory = join(temporaryRoot, "2026-week-33-night-transmission");
+  await mkdir(nextPackDirectory);
+  for (const [index, filename] of SAMPLE_FILES.entries()) {
+    await writeFile(join(nextPackDirectory, filename), createTestWav(index + 8));
+  }
+
+  const nextResult = await createPack({
+    packDirectory: nextPackDirectory,
+    pointerFile
+  });
+  const nextManifest = JSON.parse(await readFile(nextResult.manifestPath, "utf8"));
+
+  assert.equal(nextManifest.calendarWeek, 33);
+  assert.equal(nextManifest.week, 2);
 });
 
 function createTestWav(seed) {

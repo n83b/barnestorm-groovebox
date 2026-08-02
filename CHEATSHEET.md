@@ -37,8 +37,13 @@ npm run create:pack -- 2026-week-32-found-signals
 ```
 
 This creates the pack's `manifest.json`, calculates file sizes and SHA-256
-hashes, sets the UTC release window, and updates
+hashes, sets the UTC release window, assigns the next product pack number, and updates
 `web/assets/packs/current.json`.
+
+The `WW` in the folder is the ISO calendar week used for release dates. The
+app's visible `WEEK` number is a separate sequence: the first pack is Week 1,
+then each new pack becomes Week 2, Week 3, and so on. Re-running the command for
+an existing pack keeps its assigned number.
 
 Only run `create:pack` when the pack is ready to become the current pack.
 
@@ -56,13 +61,17 @@ Override generated metadata when needed:
 npm run create:pack -- 2026-week-32-found-signals \
   --name "Found Signals" \
   --license "CC0-1.0" \
-  --root-note 48
+  --root-note 48 \
+  --pack-week 1
 ```
 
 Defaults:
 
 - License: `All rights reserved`
 - Bass, Lead, Chord and Texture root note: MIDI `48` (C3)
+- Pack week: current published pack number plus one
+
+Use `--pack-week` only to correct or deliberately reset the visible sequence.
 
 `rootNote` is the note that plays the chromatic sample at its original pitch.
 If the four chromatic samples have different root notes, generate the pack and

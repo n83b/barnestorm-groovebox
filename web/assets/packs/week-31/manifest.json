@@ -2,7 +2,8 @@
   "schemaVersion": 1,
   "id": "2026-week-31-broken-machinery",
   "year": 2026,
-  "week": 31,
+  "calendarWeek": 31,
+  "week": 1,
   "name": "Broken Machinery",
   "license": "CC0-1.0",
   "tracks": [

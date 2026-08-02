@@ -35,8 +35,8 @@ WAV filenames, then run:
 npm run create:pack -- 2026-week-32-found-signals
 ```
 
-The command generates the manifest, calculates integrity metadata, updates the
-current-pack pointer and validates the result. See
+The command generates the manifest, calculates integrity metadata, assigns the
+next visible product pack number, updates the current-pack pointer and validates the result. See
 `docs/pack-publishing.md` for naming, metadata overrides and deployment.
 
 ## Implemented
@@ -80,7 +80,7 @@ npm run generate:samples
 - `web/pack-delivery.mjs` — current-pack resolution, integrity checks and IndexedDB storage
 - `web/sequencer.mjs` — deterministic timing, event and pitch calculations
 - `web/assets/packs/current.json` — pointer to the currently published immutable pack
-- `web/assets/packs/week-31/manifest.json` — weekly pack metadata and sample map
+- `web/assets/packs/<pack-id>/manifest.json` — weekly pack metadata and sample map
 - `web/layout.mjs` — 1024 × 576 scaling calculations
 - `web/state.mjs` — project data model and state operations
 - `tests/state.test.mjs` — state-model regression tests

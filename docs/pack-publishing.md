@@ -39,7 +39,8 @@ npm run create:pack -- 2026-week-32-found-signals
 
 This command:
 
-- Infers year `2026`, week `32` and the name `Found Signals` from the folder.
+- Infers calendar year `2026`, ISO calendar week `32` and the name `Found Signals` from the folder.
+- Assigns the next visible product pack number from the current published pack.
 - Requires all eight standard sample filenames.
 - Verifies that every sample is a WAV file.
 - Calculates every byte length and SHA-256 digest.
@@ -55,12 +56,19 @@ Chromatic samples default to root note MIDI 48 (C3), and the default license is
 npm run create:pack -- 2026-week-32-found-signals \
   --name "Found Signals" \
   --license "CC0-1.0" \
-  --root-note 48
+  --root-note 48 \
+  --pack-week 1
 ```
 
 `--root-note` applies to Bass, Lead, Chord and Texture. If those samples use
 different natural pitches, run the generator and then edit their individual
 `rootNote` values in `manifest.json` before running `npm run validate:pack`.
+
+The ISO week in the directory controls the Monday-to-Monday release window. It
+is deliberately separate from the `week` shown in the app. Product pack numbers
+start at 1 and increment from the current published manifest. Re-running the
+generator for an existing pack preserves its number. Use `--pack-week` only for
+an intentional correction or reset.
 
 ## 3. Review the generated files
 
