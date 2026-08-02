@@ -37,6 +37,7 @@ import {
   getDaysRemaining
 } from "./pack-delivery.mjs?v=dev";
 import {
+  getShiftActionModifier,
   getShiftModifierState,
   isDoubleTap,
   isMomentaryTouchShift,
@@ -290,27 +291,36 @@ function renderPackCountdown(pack, offline) {
 }
 
 function bindShiftAwareClick(button, action) {
-  let touchStartedWithShift = false;
+  let touchActionPending = false;
+  let touchShiftAtPointerDown = false;
   let suppressNextClick = false;
 
   button.addEventListener("pointerdown", (event) => {
     if (event.pointerType === "touch") {
-      touchStartedWithShift = shiftHeld;
+      touchActionPending = true;
+      touchShiftAtPointerDown = shiftHeld;
     }
   });
 
   button.addEventListener("pointercancel", (event) => {
     if (event.pointerType === "touch") {
-      touchStartedWithShift = false;
+      touchActionPending = false;
+      touchShiftAtPointerDown = false;
     }
   });
 
   button.addEventListener("pointerup", (event) => {
-    if (event.pointerType !== "touch" || !touchStartedWithShift) return;
-    touchStartedWithShift = false;
+    if (event.pointerType !== "touch" || !touchActionPending) return;
+    const shiftActive = getShiftActionModifier({
+      pointerType: event.pointerType,
+      shiftAtPointerDown: touchShiftAtPointerDown,
+      currentShift: shiftHeld
+    });
+    touchActionPending = false;
+    touchShiftAtPointerDown = false;
     suppressNextClick = true;
     event.preventDefault();
-    action(true);
+    action(shiftActive);
   });
 
   button.addEventListener("click", (event) => {
@@ -319,7 +329,7 @@ function bindShiftAwareClick(button, action) {
       event.preventDefault();
       return;
     }
-    action(shiftHeld);
+    action(getShiftActionModifier({ currentShift: shiftHeld }));
   });
 }
 

@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  getShiftActionModifier,
   getShiftModifierState,
   isDoubleTap,
   isMomentaryTouchShift,
@@ -114,6 +115,29 @@ test("keeps Shift active while its touch button is held", () => {
   assert.equal(getShiftModifierState({ touchHeld: true }), true);
   assert.equal(
     getShiftModifierState({ buttonToggled: true, touchHeld: false }),
+    true
+  );
+});
+
+test("resolves every touch action on release using Shift from touch-down", () => {
+  assert.equal(
+    getShiftActionModifier({
+      pointerType: "touch",
+      shiftAtPointerDown: false,
+      currentShift: false
+    }),
+    false
+  );
+  assert.equal(
+    getShiftActionModifier({
+      pointerType: "touch",
+      shiftAtPointerDown: true,
+      currentShift: false
+    }),
+    true
+  );
+  assert.equal(
+    getShiftActionModifier({ currentShift: true }),
     true
   );
 });

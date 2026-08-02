@@ -37,6 +37,14 @@ export function toggleShiftModifier(buttonToggled) {
   return !buttonToggled;
 }
 
+export function getShiftActionModifier({
+  pointerType,
+  shiftAtPointerDown = false,
+  currentShift = false
+} = {}) {
+  return pointerType === "touch" ? shiftAtPointerDown : currentShift;
+}
+
 export function isMomentaryTouchShift(
   { pointerType, duration = 0, usedWhileHeld = false } = {},
   minimumHoldDuration = 240

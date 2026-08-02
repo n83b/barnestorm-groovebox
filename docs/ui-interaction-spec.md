@@ -188,6 +188,8 @@ Shift supports both latched and momentary operation. A quick tap turns Shift
 lock on, and another quick tap turns it off. On a touch device, holding the
 button activates Shift only while the finger remains down so the other hand can
 perform a secondary action. It must not use a double-tap gesture.
+Track selection and pattern changes must complete on touch release even while
+the transport is running; they must not depend on a delayed synthetic click.
 
 Its primary initial action is:
 
