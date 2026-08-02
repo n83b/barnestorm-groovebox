@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   AudioEngine,
+  createWaveformPeaks,
   createDistortionCurve,
   getFilterFrequency,
   getSampleWindow
@@ -216,6 +217,23 @@ test("maps sample windows and filter cutoff across safe musical ranges", () => {
   assert.equal(getFilterFrequency(0), 45);
   assert.ok(getFilterFrequency(50) > 45);
   assert.ok(getFilterFrequency(100) <= 18_000);
+});
+
+test("derives normalized waveform peaks from the decoded sample", () => {
+  const samples = new Float32Array([-1, -0.5, 0, 0.5, 1, 0.5, 0, -0.5]);
+  const buffer = {
+    length: samples.length,
+    numberOfChannels: 1,
+    getChannelData: () => samples
+  };
+
+  assert.deepEqual(createWaveformPeaks(buffer, 4), [
+    [-1, -0.5],
+    [0, 0.5],
+    [0.5, 1],
+    [-0.5, 0]
+  ]);
+  assert.deepEqual(createWaveformPeaks(null, 4), []);
 });
 
 test("loads eight buffers and schedules the complete per-track signal path", async () => {

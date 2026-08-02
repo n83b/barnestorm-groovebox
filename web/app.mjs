@@ -178,6 +178,7 @@ async function initializeAudio() {
     activePackOffline = result.offline;
     activateProjectForPack(result.delivery.manifest);
     await audioEngine.loadPack(result.delivery);
+    renderTracks();
   } catch {
     // Delivery and decoding errors are exposed by the pack card.
   }
@@ -395,15 +396,19 @@ function createWaveform(trackIndex) {
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   const center = 30;
   const width = 140;
-  const segments = 38;
+  const amplitudeScale = 25;
+  const peaks = audioEngine.getWaveformPeaks(trackIndex);
   let data = "";
 
-  for (let index = 0; index < segments; index += 1) {
-    const x = (index / (segments - 1)) * width;
-    const envelope = Math.pow(1 - index / segments, 1.45);
-    const texture = 0.34 + Math.abs(Math.sin(index * (1.71 + trackIndex * 0.08))) * 0.66;
-    const amplitude = Math.max(1.2, envelope * texture * (24 - (trackIndex % 4) * 1.7));
-    data += `M ${x.toFixed(2)} ${(center - amplitude).toFixed(2)} V ${(center + amplitude).toFixed(2)} `;
+  if (peaks.length === 0) {
+    data = `M 0 ${center} H ${width}`;
+  } else {
+    peaks.forEach(([minimum, maximum], index) => {
+      const x = ((index + 0.5) / peaks.length) * width;
+      const top = center - maximum * amplitudeScale;
+      const bottom = center - minimum * amplitudeScale;
+      data += `M ${x.toFixed(2)} ${top.toFixed(2)} V ${bottom.toFixed(2)} `;
+    });
   }
 
   svg.classList.add("track-waveform");

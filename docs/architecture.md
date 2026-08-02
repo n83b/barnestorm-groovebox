@@ -175,6 +175,7 @@ the user's next full launch.
 
 ```text
 loadPack(pack)
+getWaveformPeaks(track)
 start(transportState)
 stop()
 preview(track, note, velocity)
@@ -188,6 +189,11 @@ deliver audio-timed UI ticks. The engine owns decoded buffers, scheduled
 sources and its master gain; none of those nodes enter project state. The
 context resumes from direct play/edit gestures and resynchronises its scheduling
 horizon after an interruption.
+
+After decoding a weekly pack, the audio engine downsamples each real sample into
+normalised minimum/maximum amplitude columns across all channels. Track buttons
+render those cached values as sharp SVG waveforms, so their shapes represent the
+active WAV files without rescanning audio data during UI renders.
 
 Each track owns a persistent Web Audio strip:
 

@@ -271,7 +271,9 @@ Each sample button displays:
 - Track name
 - A small track-colour indicator near the bottom
 
-Do not use drum or instrument icons. Every track should show a waveform representing its loaded sample.
+Do not use drum or instrument icons. Every track should show a waveform derived
+from the actual loaded WAV sample. Generate it from the decoded audio data so a
+new weekly pack automatically displays its own eight waveform shapes.
 
 ## Track colours
 

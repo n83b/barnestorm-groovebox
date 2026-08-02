@@ -66,6 +66,40 @@ export function getFilterFrequency(percent, sampleRate = 48_000) {
   return FILTER_MIN_HZ * ((maximum / FILTER_MIN_HZ) ** normalized);
 }
 
+export function createWaveformPeaks(buffer, segmentCount = 48) {
+  const length = Math.max(0, Number(buffer?.length) || 0);
+  const channelCount = Math.max(0, Number(buffer?.numberOfChannels) || 0);
+  const segments = Math.max(1, Math.min(256, Math.round(Number(segmentCount) || 48)));
+  if (!length || !channelCount || typeof buffer?.getChannelData !== "function") return [];
+
+  const channels = Array.from(
+    { length: channelCount },
+    (_, channelIndex) => buffer.getChannelData(channelIndex)
+  );
+  const peaks = Array.from({ length: segments }, (_, segmentIndex) => {
+    const start = Math.floor((segmentIndex / segments) * length);
+    const end = Math.max(start + 1, Math.floor(((segmentIndex + 1) / segments) * length));
+    let minimum = 1;
+    let maximum = -1;
+
+    for (const channel of channels) {
+      for (let sampleIndex = start; sampleIndex < end && sampleIndex < channel.length; sampleIndex += 1) {
+        const sample = Number(channel[sampleIndex]) || 0;
+        minimum = Math.min(minimum, sample);
+        maximum = Math.max(maximum, sample);
+      }
+    }
+
+    return [minimum, maximum];
+  });
+  const absolutePeak = peaks.reduce(
+    (largest, [minimum, maximum]) => Math.max(largest, Math.abs(minimum), Math.abs(maximum)),
+    0
+  );
+  if (absolutePeak === 0) return peaks.map(() => [0, 0]);
+  return peaks.map(([minimum, maximum]) => [minimum / absolutePeak, maximum / absolutePeak]);
+}
+
 function clampNumber(value, minimum, maximum, fallback = minimum) {
   const number = Number(value);
   return Number.isFinite(number)
@@ -96,6 +130,7 @@ export class AudioEngine {
     this.trackStrips = [];
     this.pack = null;
     this.buffers = [];
+    this.waveformPeaks = [];
     this.loadPromise = null;
     this.status = "idle";
     this.isPlaying = false;
@@ -119,6 +154,10 @@ export class AudioEngine {
   loadPack(pack) {
     this.loadPromise = this.#loadPack(pack);
     return this.loadPromise;
+  }
+
+  getWaveformPeaks(trackIndex) {
+    return this.waveformPeaks[trackIndex] ?? [];
   }
 
   async start(transportState) {
@@ -310,6 +349,7 @@ export class AudioEngine {
 
       this.pack = pack;
       this.buffers = buffers;
+      this.waveformPeaks = buffers.map((buffer) => createWaveformPeaks(buffer));
       this.#setStatus("ready", pack);
       return pack;
     } catch (error) {
