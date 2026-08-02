@@ -55,9 +55,9 @@ Avoid excessive gradients, decorative effects or DAW-style complexity.
 
 The interface should feel polished and physical, with buttons and knobs appearing slightly raised from the surface.
 
-All rotary knobs support either vertical or horizontal dragging. Up and right
-increase the value; down and left decrease it. The dominant movement axis is
-used so diagonal gestures do not change the sensitivity.
+All rotary knobs use horizontal dragging only. Dragging right increases the
+value and dragging left decreases it; vertical movement has no effect. A
+floating bubble shows the knob's formatted value throughout the drag.
 
 Do not copy Roland branding, trademarks or exact product styling.
 
@@ -527,10 +527,10 @@ Knobs should support touch, pointer and mouse input.
 
 Preferred interactions:
 
-- Drag vertically to adjust
+- Drag left or right to adjust; ignore vertical movement
 - Fine adjustment with a modifier key on desktop
 - Double-tap or double-click to restore the default value
-- Display the current value while editing
+- Display the current formatted value in a floating bubble while editing
 
 Do not require users to rotate their finger in a circle around the knob.
 

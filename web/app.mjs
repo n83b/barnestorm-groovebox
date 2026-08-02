@@ -534,12 +534,19 @@ function previewEditedStep(step) {
 }
 
 function updateEditBubble(button, step) {
-  const rect = button.getBoundingClientRect();
   const note = TRACKS[state.selectedTrack].kind === "chromatic" ? `${formatNote(step.note)} · ` : "";
 
-  elements.editBubble.textContent = `${note}Vel ${step.velocity}`;
+  showEditBubble(button, `${note}Vel ${step.velocity}`);
+}
+
+function showEditBubble(anchor, text) {
+  const rect = anchor.getBoundingClientRect();
+  const showBelow = rect.top < 48;
+
+  elements.editBubble.textContent = text;
   elements.editBubble.style.left = `${rect.left + rect.width / 2}px`;
-  elements.editBubble.style.top = `${rect.top}px`;
+  elements.editBubble.style.top = `${showBelow ? rect.bottom : rect.top}px`;
+  elements.editBubble.classList.toggle("is-below", showBelow);
   elements.editBubble.classList.add("is-visible");
 }
 
@@ -868,31 +875,29 @@ function createKnob({
     drag = {
       pointerId: event.pointerId,
       startX: event.clientX,
-      startY: event.clientY,
       startValue: value()
     };
     knob.setPointerCapture(event.pointerId);
+    showEditBubble(knob, `${label} · ${format(drag.startValue)}`);
   });
 
   knob.addEventListener("pointermove", (event) => {
     if (!drag || drag.pointerId !== event.pointerId) return;
     const sensitivity = event.shiftKey ? 520 : 150;
-    const horizontalDistance = event.clientX - drag.startX;
-    const verticalDistance = drag.startY - event.clientY;
-    const dragDistance = Math.abs(horizontalDistance) > Math.abs(verticalDistance)
-      ? horizontalDistance
-      : verticalDistance;
+    const dragDistance = event.clientX - drag.startX;
     const rawValue = drag.startValue + (dragDistance / sensitivity) * (max - min);
     const roundedValue = Math.round(rawValue / step) * step;
     const nextValue = onChange(clamp(roundedValue, min, max));
     control.classList.toggle("is-automation-write", Boolean(automationKey && shiftHeld));
     applyVisualValue(nextValue);
+    showEditBubble(knob, `${label} · ${format(nextValue)}`);
   });
 
   const finishDrag = (event) => {
     if (!drag || drag.pointerId !== event.pointerId) return;
     drag = null;
     control.classList.remove("is-automation-write");
+    hideEditBubble();
     input.blur();
   };
 

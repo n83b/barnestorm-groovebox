@@ -944,7 +944,7 @@ input:focus-visible {
     ),
     #090a0a;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
-  cursor: ns-resize;
+  cursor: ew-resize;
   touch-action: none;
 }
 
@@ -1071,6 +1071,10 @@ input:focus-visible {
 
 .edit-bubble.is-visible {
   display: block;
+}
+
+.edit-bubble.is-below {
+  transform: translate(-50%, 15%);
 }
 
 .save-status {
