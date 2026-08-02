@@ -256,7 +256,7 @@ test("loads eight buffers and schedules the complete per-track signal path", asy
 
   const bass = context.starts.find((start) => start.buffer.id === 4);
   assert.ok(bass);
-  assert.ok(Math.abs(bass.playbackRate - 2 ** (16 / 12)) < 1e-12);
+  assert.ok(Math.abs(bass.playbackRate - 2 ** (12 / 12)) < 1e-12);
   assert.ok(Math.abs(bass.gain - (112 / 127)) < 1e-12);
   assert.equal(bass.offset, 0.5);
   assert.equal(bass.duration, 1);
@@ -304,7 +304,7 @@ test("schedules per-step automation over pattern knob positions", async () => {
   await engine.start({ getState: () => state });
 
   const bass = FakeAudioContext.instance.starts.find((start) => start.buffer.id === 4);
-  assert.ok(Math.abs(bass.playbackRate - 2 ** (16 / 12)) < 1e-12);
+  assert.ok(Math.abs(bass.playbackRate - 2 ** (12 / 12)) < 1e-12);
   assert.equal(bass.offset, 0.5);
   assert.equal(bass.duration, 1);
 

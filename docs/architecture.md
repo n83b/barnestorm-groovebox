@@ -36,6 +36,11 @@ Each event currently stores:
 - MIDI velocity
 - Optional per-parameter automation values
 
+The pack manifest's root note for each chromatic sample is stored with the
+project and used as the initial note for every fresh or cleared step. Loading an
+older project migrates only untouched legacy default notes to those pack roots;
+notes that the user has edited remain unchanged.
+
 Each pattern track stores its own nine knob positions. Moving a knob with Shift
 off updates those pattern-local values, so switching away and back restores the
 track exactly as it was last set in that pattern.

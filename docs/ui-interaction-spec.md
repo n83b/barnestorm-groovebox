@@ -757,6 +757,9 @@ This range should be configurable so it can be expanded later.
 
 If the step already contains a note, editing begins from that note rather than resetting to a default.
 
+In a fresh or cleared pattern, each chromatic step begins at that track's root
+note declared by the active weekly pack manifest.
+
 ---
 
 # Velocity Editing

@@ -4,6 +4,7 @@ import {
   PATTERN_NAMES,
   PATTERNS_PER_BANK,
   TRACKS,
+  applyPackRootNotes,
   clearPatternSequence,
   clearTrackAutomation,
   clearTrackSequence,
@@ -168,7 +169,7 @@ async function initializeAudio() {
   try {
     const result = await packDelivery.loadCurrent({ fallbackPackId: state.packId });
     activePackOffline = result.offline;
-    activateProjectForPack(result.delivery.manifest.id);
+    activateProjectForPack(result.delivery.manifest);
     await audioEngine.loadPack(result.delivery);
   } catch {
     // Delivery and decoding errors are exposed by the pack card.
@@ -193,14 +194,18 @@ function syncProjectAudioSettings() {
   audioEngine.setCompressor(state.compressor);
 }
 
-function activateProjectForPack(packId) {
+function activateProjectForPack(manifest) {
+  const packId = manifest.id;
+  const trackRootNotes = manifest.tracks.map((track) => track.rootNote);
+
   if (!state.packId) {
     state.packId = packId;
   } else if (state.packId !== packId) {
     persistState(false);
-    state = loadProjectForPack(packId) ?? createInitialState(packId);
+    state = loadProjectForPack(packId) ?? createInitialState(packId, trackRootNotes);
   }
 
+  applyPackRootNotes(state, manifest.tracks);
   persistState(false);
   renderGlobalControls();
   renderAll();

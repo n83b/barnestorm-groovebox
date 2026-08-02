@@ -47,7 +47,8 @@ const DEFAULT_STEPS = {
   }
 };
 
-export function createInitialState(packId = null) {
+export function createInitialState(packId = null, savedTrackRootNotes = []) {
+  const trackRootNotes = normalizeTrackRootNotes(savedTrackRootNotes);
   const patterns = PATTERN_NAMES.map((patternName) => ({
     name: patternName,
     tracks: TRACKS.map((track, trackIndex) => ({
@@ -59,7 +60,8 @@ export function createInitialState(packId = null) {
         createStep(
           trackIndex,
           stepIndex,
-          DEFAULT_STEPS[patternName]?.[track.name]?.includes(stepIndex) ?? false
+          DEFAULT_STEPS[patternName]?.[track.name]?.includes(stepIndex) ?? false,
+          trackRootNotes[trackIndex]
         )
       )
     }))
@@ -76,6 +78,7 @@ export function createInitialState(packId = null) {
     tempo: 128,
     swing: 14,
     compressor: 0,
+    trackRootNotes,
     muted: TRACKS.map(() => false),
     trackParameters: TRACKS.map(() =>
       Object.fromEntries(PARAMETER_DEFINITIONS.map((parameter) => [parameter.key, parameter.defaultValue]))
@@ -106,6 +109,9 @@ export function restoreState(rawState) {
     const trackParameters = fallback.trackParameters.map((defaults, index) =>
       restoreTrackParameters(rawState.trackParameters?.[index], defaults)
     );
+    const trackRootNotes = rawState.trackRootNotes
+      ? normalizeTrackRootNotes(rawState.trackRootNotes)
+      : TRACKS.map((track, trackIndex) => track.kind === "chromatic" ? 48 + trackIndex : null);
 
     return {
       ...fallback,
@@ -121,6 +127,7 @@ export function restoreState(rawState) {
       tempo: clampNumber(rawState.tempo, 40, 240),
       swing: clampNumber(rawState.swing, 0, 60),
       compressor: clampNumber(rawState.compressor, 0, 100),
+      trackRootNotes,
       muted: fallback.muted.map((defaultValue, index) => Boolean(rawState.muted?.[index] ?? defaultValue)),
       trackParameters,
       patterns: fallback.patterns.map((defaultPattern, patternIndex) => ({
@@ -330,8 +337,33 @@ export function clearTrackSequence(
   const patternTrack = state.patterns[safePatternIndex].tracks[safeTrackIndex];
 
   patternTrack.steps = Array.from({ length: 16 }, (_, stepIndex) =>
-    createStep(safeTrackIndex, stepIndex)
+    createStep(safeTrackIndex, stepIndex, false, state.trackRootNotes?.[safeTrackIndex])
   );
+  return state;
+}
+
+export function applyPackRootNotes(state, manifestTracks) {
+  const nextRootNotes = normalizeTrackRootNotes(
+    TRACKS.map((_, trackIndex) => manifestTracks?.[trackIndex]?.rootNote)
+  );
+  const previousRootNotes = state.trackRootNotes ??
+    TRACKS.map((track, trackIndex) => track.kind === "chromatic" ? 48 + trackIndex : null);
+
+  TRACKS.forEach((track, trackIndex) => {
+    if (track.kind !== "chromatic") return;
+
+    const previousRootNote = clampInteger(previousRootNotes[trackIndex], 24, 96);
+    const nextRootNote = nextRootNotes[trackIndex];
+    if (previousRootNote === nextRootNote) return;
+
+    state.patterns.forEach((pattern) => {
+      pattern.tracks[trackIndex].steps.forEach((step) => {
+        if (step.note === previousRootNote) step.note = nextRootNote;
+      });
+    });
+  });
+
+  state.trackRootNotes = nextRootNotes;
   return state;
 }
 
@@ -376,13 +408,22 @@ export function formatNote(midiNote) {
   return `${noteNames[midiNote % 12]}${Math.floor(midiNote / 12) - 1}`;
 }
 
-function createStep(trackIndex, stepIndex, active = false) {
+function createStep(trackIndex, stepIndex, active = false, rootNote = 48) {
   return {
     active,
-    note: 48 + trackIndex,
+    note: TRACKS[trackIndex].kind === "chromatic"
+      ? clampInteger(rootNote, 24, 96)
+      : 48,
     velocity: stepIndex % 4 === 0 ? 112 : 92,
     automation: {}
   };
+}
+
+function normalizeTrackRootNotes(savedTrackRootNotes) {
+  return TRACKS.map((track, trackIndex) => track.kind === "chromatic"
+    ? clampInteger(savedTrackRootNotes?.[trackIndex] ?? 48, 24, 96)
+    : null
+  );
 }
 
 function formatPan(value) {

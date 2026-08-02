@@ -5,6 +5,7 @@ import {
   PARAMETER_DEFINITIONS,
   PATTERN_NAMES,
   TRACKS,
+  applyPackRootNotes,
   clearPatternSequence,
   clearTrackAutomation,
   clearTrackSequence,
@@ -64,6 +65,45 @@ test("creates thirty-two patterns with eight independent sixteen-step tracks", (
   assert.deepEqual(state.patterns[0].tracks[0].steps[0].automation, {});
   assert.notEqual(state.patterns[0].tracks[0], state.patterns[1].tracks[0]);
   assert.notEqual(state.patterns[0].tracks[0].parameters, state.patterns[1].tracks[0].parameters);
+});
+
+test("uses each chromatic sample root note for fresh and cleared steps", () => {
+  const rootNotes = [null, null, null, null, 60, 61, 62, 63];
+  const state = createInitialState("test-pack", rootNotes);
+
+  assert.deepEqual(
+    state.patterns[1].tracks.slice(4).map((track) => track.steps[0].note),
+    [60, 61, 62, 63]
+  );
+
+  clearTrackSequence(state, 1, 4);
+  assert.equal(state.patterns[1].tracks[4].steps.every((step) => step.note === 60), true);
+});
+
+test("migrates legacy default notes to pack roots without changing edited notes", () => {
+  const legacy = createInitialState("test-pack");
+  delete legacy.trackRootNotes;
+  legacy.patterns.forEach((pattern) => {
+    pattern.tracks.forEach((track, trackIndex) => {
+      track.steps.forEach((step) => {
+        step.note = 48 + trackIndex;
+      });
+    });
+  });
+  legacy.patterns[0].tracks[4].steps[1].note = 60;
+  const state = restoreState(legacy);
+  const manifestTracks = TRACKS.map((track) => ({
+    kind: track.kind,
+    rootNote: track.kind === "chromatic" ? 48 : null
+  }));
+
+  applyPackRootNotes(state, manifestTracks);
+
+  assert.deepEqual(
+    state.patterns[1].tracks.slice(4).map((track) => track.steps[0].note),
+    [48, 48, 48, 48]
+  );
+  assert.equal(state.patterns[0].tracks[4].steps[1].note, 60);
 });
 
 test("restores the immutable pack reference with a saved project", () => {
@@ -166,7 +206,7 @@ test("clears one track sequence without changing its length, knobs or other trac
   clearTrackSequence(state, 0, 4);
 
   assert.equal(patternTrack.steps.every((step) => !step.active), true);
-  assert.equal(patternTrack.steps[3].note, 52);
+  assert.equal(patternTrack.steps[3].note, 48);
   assert.equal(patternTrack.steps[3].velocity, 92);
   assert.deepEqual(patternTrack.steps[3].automation, {});
   assert.equal(patternTrack.length, 10);
