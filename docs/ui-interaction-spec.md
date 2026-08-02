@@ -427,6 +427,9 @@ visible bank. The currently playing pattern continues until the user explicitly
 presses a pattern button. If the visible bank does not contain that current
 pattern, none of its eight pattern buttons appears selected.
 
+The bank overflow button completes its action directly on touch release so bank
+browsing remains responsive while the transport is running.
+
 The bank colors are:
 
 - Bank A: orange

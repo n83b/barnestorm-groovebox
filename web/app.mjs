@@ -290,7 +290,7 @@ function renderPackCountdown(pack, offline) {
   }
 }
 
-function bindShiftAwareClick(button, action) {
+function bindTouchSafeClick(button, action) {
   let touchActionPending = false;
   let touchShiftAtPointerDown = false;
   let suppressNextClick = false;
@@ -370,7 +370,7 @@ function renderTracks() {
         button.append(muteSymbol);
       }
 
-      bindShiftAwareClick(button, (shiftActive) => {
+      bindTouchSafeClick(button, (shiftActive) => {
         if (stopLocked) {
           clearTrackSequence(state, state.selectedPattern, trackIndex);
         } else if (shiftActive) {
@@ -640,7 +640,7 @@ function renderPatterns() {
       "aria-label",
       `Pattern ${patternName}, ${containsData ? "contains sequence data" : "empty"}${isQueued ? ", queued" : ""}${isCopySource ? ", copied and ready to paste" : ""}`
     );
-    bindShiftAwareClick(button, (shiftActive) => {
+    bindTouchSafeClick(button, (shiftActive) => {
       if (stopLocked) {
         clearPatternSequence(state, patternIndex);
         copiedPatternIndex = null;
@@ -702,7 +702,7 @@ function renderPatterns() {
       return dot;
     })
   );
-  overflow.addEventListener("click", () => {
+  bindTouchSafeClick(overflow, () => {
     selectBank(state, nextBankIndex);
     persistState();
     renderPatterns();
