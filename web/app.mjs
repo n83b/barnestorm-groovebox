@@ -39,6 +39,7 @@ import {
 import {
   getShiftModifierState,
   isDoubleTap,
+  isMomentaryTouchShift,
   shouldToggleTransportFromKeydown,
   toggleShiftModifier
 } from "./keyboard.mjs?v=dev";
@@ -1181,20 +1182,31 @@ function renderTransport() {
 
 function bindShift() {
   let physicalKeyboardHeld = false;
+  let touchHeld = false;
+  let touchPointerId = null;
+  let touchStartedAt = 0;
+  let touchUsedWhileHeld = false;
+  let suppressNextTouchClick = false;
 
   const updateShift = () => {
     const wasShiftHeld = shiftHeld;
     shiftHeld = getShiftModifierState({
       buttonToggled: shiftToggled,
-      keyboardHeld: physicalKeyboardHeld
+      keyboardHeld: physicalKeyboardHeld,
+      touchHeld
     });
     elements.shiftButton.classList.toggle("is-held", shiftHeld);
     elements.shiftButton.classList.toggle("is-locked", shiftToggled);
+    elements.groovebox.classList.toggle("is-shift-locked", shiftToggled);
     elements.parameterList.classList.toggle("is-automation-armed", shiftHeld);
     elements.shiftButton.setAttribute("aria-pressed", String(shiftHeld));
     elements.shiftButton.setAttribute(
       "aria-label",
-      shiftToggled ? "Shift active, press to turn off" : "Shift, press to turn on"
+      shiftToggled
+        ? "Shift locked, press to turn off"
+        : shiftHeld
+          ? "Shift active while held"
+          : "Shift, tap to lock or hold for momentary use"
     );
     if (wasShiftHeld && !shiftHeld) {
       if (copiedPatternIndex != null) {
@@ -1211,7 +1223,47 @@ function bindShift() {
     }
   };
 
-  elements.shiftButton.addEventListener("click", () => {
+  elements.shiftButton.addEventListener("pointerdown", (event) => {
+    if (event.pointerType !== "touch" || touchPointerId != null) return;
+    touchPointerId = event.pointerId;
+    touchStartedAt = event.timeStamp;
+    touchUsedWhileHeld = false;
+    touchHeld = true;
+    updateShift();
+  });
+
+  window.addEventListener("pointerdown", (event) => {
+    if (touchPointerId != null && event.pointerId !== touchPointerId) {
+      touchUsedWhileHeld = true;
+    }
+  }, { capture: true });
+
+  window.addEventListener("pointerup", (event) => {
+    if (event.pointerId !== touchPointerId) return;
+    suppressNextTouchClick = isMomentaryTouchShift({
+      pointerType: event.pointerType,
+      duration: event.timeStamp - touchStartedAt,
+      usedWhileHeld: touchUsedWhileHeld
+    });
+    touchPointerId = null;
+    touchHeld = false;
+    updateShift();
+  });
+
+  window.addEventListener("pointercancel", (event) => {
+    if (event.pointerId !== touchPointerId) return;
+    touchPointerId = null;
+    touchHeld = false;
+    touchUsedWhileHeld = false;
+    updateShift();
+  });
+
+  elements.shiftButton.addEventListener("click", (event) => {
+    if (suppressNextTouchClick) {
+      suppressNextTouchClick = false;
+      event.preventDefault();
+      return;
+    }
     shiftToggled = toggleShiftModifier(shiftToggled);
     updateShift();
   });
@@ -1230,6 +1282,9 @@ function bindShift() {
   });
   window.addEventListener("blur", () => {
     physicalKeyboardHeld = false;
+    touchPointerId = null;
+    touchHeld = false;
+    touchUsedWhileHeld = false;
     updateShift();
   });
 

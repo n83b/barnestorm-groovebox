@@ -25,12 +25,24 @@ export function shouldToggleTransportFromKeydown(event) {
     && (!hasInteractiveTarget || hasKnobTarget || hasPlayButtonTarget);
 }
 
-export function getShiftModifierState({ buttonToggled = false, keyboardHeld = false } = {}) {
-  return buttonToggled || keyboardHeld;
+export function getShiftModifierState({
+  buttonToggled = false,
+  keyboardHeld = false,
+  touchHeld = false
+} = {}) {
+  return buttonToggled || keyboardHeld || touchHeld;
 }
 
 export function toggleShiftModifier(buttonToggled) {
   return !buttonToggled;
+}
+
+export function isMomentaryTouchShift(
+  { pointerType, duration = 0, usedWhileHeld = false } = {},
+  minimumHoldDuration = 240
+) {
+  return pointerType === "touch"
+    && (usedWhileHeld || duration >= minimumHoldDuration);
 }
 
 export function isDoubleTap(

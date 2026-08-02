@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   getShiftModifierState,
   isDoubleTap,
+  isMomentaryTouchShift,
   shouldToggleTransportFromKeydown,
   toggleShiftModifier
 } from "../web/keyboard.mjs";
@@ -106,6 +107,37 @@ test("keeps the physical Shift key momentary alongside the button toggle", () =>
   assert.equal(
     getShiftModifierState({ buttonToggled: true, keyboardHeld: false }),
     true
+  );
+});
+
+test("keeps Shift active while its touch button is held", () => {
+  assert.equal(getShiftModifierState({ touchHeld: true }), true);
+  assert.equal(
+    getShiftModifierState({ buttonToggled: true, touchHeld: false }),
+    true
+  );
+});
+
+test("distinguishes a touch hold from a quick toggle tap", () => {
+  assert.equal(
+    isMomentaryTouchShift({ pointerType: "touch", duration: 260 }),
+    true
+  );
+  assert.equal(
+    isMomentaryTouchShift({ pointerType: "touch", duration: 120 }),
+    false
+  );
+  assert.equal(
+    isMomentaryTouchShift({
+      pointerType: "touch",
+      duration: 120,
+      usedWhileHeld: true
+    }),
+    true
+  );
+  assert.equal(
+    isMomentaryTouchShift({ pointerType: "mouse", duration: 400 }),
+    false
   );
 });
 

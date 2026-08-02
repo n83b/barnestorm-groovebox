@@ -184,8 +184,10 @@ Pressing Stop should:
 
 The Shift button is positioned at the far top-right so it can be toggled comfortably with the user’s right thumb.
 
-Shift is a toggle. Press once to turn it on and press again to turn it off. It
-must not use a double-tap gesture.
+Shift supports both latched and momentary operation. A quick tap turns Shift
+lock on, and another quick tap turns it off. On a touch device, holding the
+button activates Shift only while the finger remains down so the other hand can
+perform a secondary action. It must not use a double-tap gesture.
 
 Its primary initial action is:
 
@@ -193,7 +195,10 @@ Its primary initial action is:
 Shift on + press a sample selector = mute or unmute that track
 ```
 
-The Shift button should remain visibly illuminated while enabled.
+The Shift button should remain visibly illuminated while enabled. While Shift
+lock is latched, an orange inset border around the complete app UI provides a
+clear persistent indicator. A temporary touch hold lights the button but does
+not show the lock border.
 
 Other secondary Shift functions may be added later, but they should not be invented during the first implementation unless explicitly documented.
 
@@ -1118,6 +1123,9 @@ Tap sample selector
 
 Shift on + tap sample selector
 → Mute or unmute that track
+
+Hold Shift on touch + tap another control
+→ Use Shift temporarily until the Shift finger is released
 
 Shift on + tap pattern, then another pattern
 → Copy the first complete pattern into the second slot

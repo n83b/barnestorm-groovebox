@@ -61,7 +61,13 @@ does not change or queue the playing pattern. A newly browsed bank therefore has
 no selected button unless it contains the current pattern. Pressing one of its
 pattern buttons explicitly selects or queues that pattern.
 
-With Shift toggled on, moving one of the nine selected-track knobs writes that
+Shift can be latched with a tap or used momentarily by holding its button on a
+touch device. A second touch can use Shift actions immediately while the button
+is held, and releasing it returns to the previous unlocked state. The latched
+state adds an inset orange frame around the complete 1024 x 576 instrument so it
+remains obvious even when the Shift button is outside the user's focus.
+
+With Shift active, moving one of the nine selected-track knobs writes that
 parameter to the selected track's current playhead step. Playback merges those
 step values over the pattern track's saved knob positions before scheduling the
 audio nodes and any new sample voice. A lit base dot on a knob indicates that
