@@ -65,7 +65,8 @@ Shift can be latched with a tap or used momentarily by holding its button on a
 touch device. A second touch can use Shift actions immediately while the button
 is held, and releasing it returns to the previous unlocked state. The latched
 state adds an inset orange frame around the complete 1024 x 576 instrument so it
-remains obvious even when the Shift button is outside the user's focus.
+remains obvious even when the Shift button is outside the user's focus. The same
+frame appears during a temporary touch hold and disappears on release.
 
 With Shift active, moving one of the nine selected-track knobs writes that
 parameter to the selected track's current playhead step. Playback merges those

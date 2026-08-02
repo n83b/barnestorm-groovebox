@@ -289,6 +289,40 @@ function renderPackCountdown(pack, offline) {
   }
 }
 
+function bindShiftAwareClick(button, action) {
+  let touchStartedWithShift = false;
+  let suppressNextClick = false;
+
+  button.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "touch") {
+      touchStartedWithShift = shiftHeld;
+    }
+  });
+
+  button.addEventListener("pointercancel", (event) => {
+    if (event.pointerType === "touch") {
+      touchStartedWithShift = false;
+    }
+  });
+
+  button.addEventListener("pointerup", (event) => {
+    if (event.pointerType !== "touch" || !touchStartedWithShift) return;
+    touchStartedWithShift = false;
+    suppressNextClick = true;
+    event.preventDefault();
+    action(true);
+  });
+
+  button.addEventListener("click", (event) => {
+    if (suppressNextClick) {
+      suppressNextClick = false;
+      event.preventDefault();
+      return;
+    }
+    action(shiftHeld);
+  });
+}
+
 function renderTracks() {
   elements.trackList.replaceChildren(
     ...TRACKS.map((track, trackIndex) => {
@@ -326,10 +360,10 @@ function renderTracks() {
         button.append(muteSymbol);
       }
 
-      button.addEventListener("click", () => {
+      bindShiftAwareClick(button, (shiftActive) => {
         if (stopLocked) {
           clearTrackSequence(state, state.selectedPattern, trackIndex);
-        } else if (shiftHeld) {
+        } else if (shiftActive) {
           state.muted[trackIndex] = !state.muted[trackIndex];
           audioEngine.setMuted(trackIndex, state.muted[trackIndex]);
         } else {
@@ -596,7 +630,7 @@ function renderPatterns() {
       "aria-label",
       `Pattern ${patternName}, ${containsData ? "contains sequence data" : "empty"}${isQueued ? ", queued" : ""}${isCopySource ? ", copied and ready to paste" : ""}`
     );
-    button.addEventListener("click", () => {
+    bindShiftAwareClick(button, (shiftActive) => {
       if (stopLocked) {
         clearPatternSequence(state, patternIndex);
         copiedPatternIndex = null;
@@ -609,7 +643,7 @@ function renderPatterns() {
         return;
       }
 
-      if (shiftHeld) {
+      if (shiftActive) {
         if (copiedPatternIndex == null) {
           copiedPatternIndex = patternIndex;
         } else if (copiedPatternIndex === patternIndex) {
@@ -1197,7 +1231,7 @@ function bindShift() {
     });
     elements.shiftButton.classList.toggle("is-held", shiftHeld);
     elements.shiftButton.classList.toggle("is-locked", shiftToggled);
-    elements.groovebox.classList.toggle("is-shift-locked", shiftToggled);
+    elements.groovebox.classList.toggle("is-shift-active", shiftHeld);
     elements.parameterList.classList.toggle("is-automation-armed", shiftHeld);
     elements.shiftButton.setAttribute("aria-pressed", String(shiftHeld));
     elements.shiftButton.setAttribute(

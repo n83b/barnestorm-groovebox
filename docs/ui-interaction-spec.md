@@ -195,10 +195,10 @@ Its primary initial action is:
 Shift on + press a sample selector = mute or unmute that track
 ```
 
-The Shift button should remain visibly illuminated while enabled. While Shift
-lock is latched, an orange inset border around the complete app UI provides a
-clear persistent indicator. A temporary touch hold lights the button but does
-not show the lock border.
+The Shift button should remain visibly illuminated while enabled. An orange
+inset border around the complete app UI appears whenever Shift is active,
+including both the latched lock state and a temporary touch hold. The temporary
+border disappears when the Shift finger is released.
 
 Other secondary Shift functions may be added later, but they should not be invented during the first implementation unless explicitly documented.
 
