@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Weekly Groovebox",
-  "short_name": "Groovebox",
+  "name": "Barnestørm",
+  "short_name": "Barnestørm",
   "description": "A compact weekly sample-based groovebox built for landscape play.",
   "start_url": "./",
   "scope": "./",
