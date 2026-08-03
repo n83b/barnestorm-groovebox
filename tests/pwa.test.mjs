@@ -53,6 +53,7 @@ test("links the manifest, Apple metadata and app-shell registration", async () =
   assert.match(html, /src="\.\/bootstrap\.mjs\?v=dev"/);
   assert.doesNotMatch(html, /src="\.\/app\.mjs/);
   assert.match(html, /id="installGate"/);
+  assert.match(html, /src="\.\/assets\/barnestorm-install-logo\.png"/);
   assert.match(registration, /serviceWorker\.register\("\.\/service-worker\.js"/);
 });
 

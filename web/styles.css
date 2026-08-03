@@ -87,26 +87,12 @@ body {
   display: none;
 }
 
-.install-icon {
-  width: clamp(68px, 15vh, 108px);
-  height: clamp(68px, 15vh, 108px);
-  border-radius: 22%;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.48);
-}
-
-.install-brand {
-  display: flex;
-  flex-direction: column;
-  margin-top: 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: clamp(0.72rem, 1.6vh, 0.95rem);
-  line-height: 1;
-}
-
-.install-brand strong {
-  color: var(--orange);
-  font-size: 1.3em;
+.install-logo {
+  width: auto;
+  height: clamp(92px, 25vh, 150px);
+  max-width: min(86vw, 520px);
+  object-fit: contain;
+  filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.48));
 }
 
 .install-gate h1 {
