@@ -42,3 +42,16 @@ test("step edits share the transient pack display and hide it on release", async
   assert.match(stepInteraction, /showEditStatus\(`\$\{note\}Vel \$\{step\.velocity\}`\)/);
   assert.match(stepInteraction, /hideEditStatus\(\)/);
 });
+
+test("the pack name opens save and load actions in every build", async () => {
+  const app = await readFile(new URL("app.mjs", webDirectory), "utf8");
+  const markup = await readFile(new URL("index.html", webDirectory), "utf8");
+
+  assert.match(app, /elements\.packName\.addEventListener\("click", open\)/);
+  assert.match(markup, /id="packTransferOverlay" hidden/);
+  assert.match(markup, /id="savePackButton"/);
+  assert.match(markup, /id="loadPackButton"/);
+  assert.match(markup, /id="packFileInput"[^>]*accept="\.wgbpack/);
+  assert.match(app, /typeof window\.showDirectoryPicker === "function"/);
+  assert.match(app, /downloadPackFile\(result\.blob, result\.filename\)/);
+});

@@ -11,6 +11,6 @@
     "generate:samples": "node tools/generate-development-pack.mjs",
     "validate:pack": "node tools/validate-pack.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check web/app.mjs && node --check web/audio-engine.mjs && node --check web/bootstrap.mjs && node --check web/install-mode.mjs && node --check web/keyboard.mjs && node --check web/layout.mjs && node --check web/pack-delivery.mjs && node --check web/pwa.mjs && node --check web/sequencer.mjs && node --check web/service-worker.js && node --check web/state.mjs && node --check tools/build-site.mjs && node --check tools/create-pack.mjs && node --check tools/validate-pack.mjs && npm run validate:pack && npm test && npm run build"
+    "check": "node --check web/app.mjs && node --check web/audio-engine.mjs && node --check web/bootstrap.mjs && node --check web/install-mode.mjs && node --check web/keyboard.mjs && node --check web/layout.mjs && node --check web/pack-delivery.mjs && node --check web/pack-transfer.mjs && node --check web/pwa.mjs && node --check web/sequencer.mjs && node --check web/service-worker.js && node --check web/state.mjs && node --check tools/build-site.mjs && node --check tools/create-pack.mjs && node --check tools/validate-pack.mjs && npm run validate:pack && npm test && npm run build"
   }
 }

@@ -130,6 +130,15 @@ so malformed or older partial data cannot break the instrument. The original
 unscoped project key is treated as legacy state and is attached to the first
 successfully delivered pack without losing edits.
 
+The weekly pack name opens a pack transfer tool. Its versioned format stores
+the complete project state, the immutable pack manifest and all eight WAV
+files. Browsers with the File System Access API write a folder; other browsers
+download the same data as one `.wgbpack` file. Import verifies each sample's
+byte length and SHA-256 hash before decoding it, then saves the imported
+delivery to the same IndexedDB repository and restores its pattern data. An
+imported pack remains the active project across launches until another pack is
+loaded.
+
 Weekly audio packs use a separate IndexedDB repository. A small, revalidated
 `assets/packs/current.json` file points to an immutable pack manifest. The app
 downloads all eight samples, verifies byte lengths and SHA-256 hashes, and then

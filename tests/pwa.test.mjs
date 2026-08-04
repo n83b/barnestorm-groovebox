@@ -64,6 +64,11 @@ test("disables iOS long-press selection and callouts inside the instrument", asy
   assert.match(stylesheet, /\.groovebox,\s*\.groovebox \*\s*\{[^}]*-webkit-touch-callout:\s*none;/s);
 });
 
+test("caches the pack transfer module with the application shell", async () => {
+  const serviceWorker = await readFile(new URL("service-worker.js", webDirectory), "utf8");
+  assert.match(serviceWorker, /"\.\/pack-transfer\.mjs\?v=dev"/);
+});
+
 test("requires Home Screen launch on mobile but not desktop", () => {
   const iphone = {
     userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)",

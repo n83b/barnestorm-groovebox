@@ -38,6 +38,12 @@ import {
   getDaysRemaining
 } from "./pack-delivery.mjs?v=dev";
 import {
+  exportPackToFile,
+  exportPackToDirectory,
+  importPackFromDirectory,
+  importPackFromFile
+} from "./pack-transfer.mjs?v=dev";
+import {
   getShiftActionModifier,
   getShiftModifierState,
   getTouchShiftReleaseAction,
@@ -52,6 +58,7 @@ import { shouldAuditionStepEdit, shouldRenderStepGrid } from "./sequencer.mjs?v=
 const LEGACY_STORAGE_KEY = "weekly-groovebox-project-v1";
 const ACTIVE_PACK_STORAGE_KEY = "weekly-groovebox-active-pack-v1";
 const PROJECT_STORAGE_PREFIX = "weekly-groovebox-project-v2:";
+const IMPORTED_PACK_STORAGE_KEY = "weekly-groovebox-imported-pack-v1";
 const PACK_POINTER_URL = "./assets/packs/current.json";
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -62,11 +69,17 @@ const elements = {
   packCard: document.querySelector("#packCard"),
   packEditStatus: document.querySelector("#packEditStatus"),
   packName: document.querySelector("#packName"),
+  packTransferClose: document.querySelector("#packTransferClose"),
+  packTransferOverlay: document.querySelector("#packTransferOverlay"),
+  packTransferStatus: document.querySelector("#packTransferStatus"),
+  packFileInput: document.querySelector("#packFileInput"),
   parameterList: document.querySelector("#parameterList"),
   patternLengthLabel: document.querySelector("#patternLengthLabel"),
   patternList: document.querySelector("#patternList"),
   patternPosition: document.querySelector("#patternPosition"),
   playButton: document.querySelector("#playButton"),
+  loadPackButton: document.querySelector("#loadPackButton"),
+  savePackButton: document.querySelector("#savePackButton"),
   saveStatus: document.querySelector("#saveStatus"),
   selectedTrackName: document.querySelector("#selectedTrackName"),
   shiftButton: document.querySelector("#shiftButton"),
@@ -90,11 +103,13 @@ let saveStatusTimer = null;
 let editSession = null;
 let modeSelectorOpen = false;
 let stageResizeFrame = null;
-let activePackOffline = false;
+let activePackSource = "weekly";
+let activePackDelivery = null;
 const audioEngine = new AudioEngine({ onStatusChange: handleAudioEngineStatus });
+const packRepository = new IndexedDbPackRepository();
 const packDelivery = new PackDelivery({
   pointerUrl: PACK_POINTER_URL,
-  repository: new IndexedDbPackRepository(),
+  repository: packRepository,
   onStatusChange: updatePackStatus
 });
 
@@ -104,6 +119,7 @@ renderGlobalControls();
 renderAll();
 bindTransport();
 bindShift();
+bindPackTransfer();
 bindStageScaling();
 initializeAudio();
 
@@ -176,10 +192,12 @@ async function initializeAudio() {
   syncProjectAudioSettings();
 
   try {
-    const result = await packDelivery.loadCurrent({ fallbackPackId: state.packId });
-    activePackOffline = result.offline;
+    const result = await loadStartupPack();
+    activePackDelivery = result.delivery;
+    activePackSource = result.imported ? "imported" : result.offline ? "offline" : "weekly";
     activateProjectForPack(result.delivery.manifest);
     await audioEngine.loadPack(result.delivery);
+    if (result.imported) updatePackStatus("imported", result.delivery);
     renderTracks();
   } catch {
     // Delivery and decoding errors are exposed by the pack card.
@@ -191,6 +209,25 @@ async function initializeAudio() {
     packDelivery.loadCurrent({ fallbackPackId: state.packId, quiet: true }).catch(() => {});
   });
   window.addEventListener("pagehide", () => audioEngine.stop());
+}
+
+async function loadStartupPack() {
+  try {
+    const importedPackId = localStorage.getItem(IMPORTED_PACK_STORAGE_KEY);
+    if (importedPackId) {
+      try {
+        const delivery = await packRepository.get(importedPackId);
+        if (delivery) return { delivery, offline: true, imported: true };
+      } catch {
+        // Fall through to the normal weekly delivery path.
+      }
+      localStorage.removeItem(IMPORTED_PACK_STORAGE_KEY);
+    }
+  } catch {
+    // The weekly pack still loads when private browsing blocks local storage.
+  }
+
+  return packDelivery.loadCurrent({ fallbackPackId: state.packId });
 }
 
 function syncProjectAudioSettings() {
@@ -223,7 +260,9 @@ function activateProjectForPack(manifest) {
 }
 
 function handleAudioEngineStatus(status, detail) {
-  if (status === "ready" && activePackOffline) {
+  if (status === "ready" && activePackSource === "imported") {
+    updatePackStatus("imported", { manifest: detail });
+  } else if (status === "ready" && activePackSource === "offline") {
     updatePackStatus("offline", { manifest: detail });
   } else {
     updatePackStatus(status, detail);
@@ -236,18 +275,22 @@ function updatePackStatus(status, detail) {
 
   elements.packCard.classList.toggle("is-loading", isLoading);
   elements.packCard.classList.toggle("is-error", status === "error");
-  elements.packCard.classList.toggle("is-offline", status === "offline");
+  elements.packCard.classList.toggle("is-offline", ["offline", "imported"].includes(status));
   elements.availabilityDot.classList.toggle("is-loading", isLoading);
   elements.availabilityDot.classList.toggle("is-error", status === "error");
-  elements.availabilityDot.classList.toggle("is-offline", status === "offline");
+  elements.availabilityDot.classList.toggle("is-offline", ["offline", "imported"].includes(status));
 
-  if (["ready", "offline"].includes(status) && pack?.tracks?.length === 8) {
+  if (["ready", "offline", "imported"].includes(status) && pack?.tracks?.length === 8) {
     elements.weekNumber.textContent = `Week ${pack.week}`;
     elements.packName.textContent = pack.name;
-    renderPackCountdown(pack, status === "offline");
+    if (status === "imported") {
+      elements.daysLeft.textContent = "Imported pack";
+    } else {
+      renderPackCountdown(pack, status === "offline");
+    }
     elements.packCard.setAttribute(
       "aria-label",
-      `${status === "offline" ? "Saved" : "This week's"} sample pack, ${pack.name}, eight samples loaded`
+      `${status === "imported" ? "Imported" : status === "offline" ? "Saved" : "This week's"} sample pack, ${pack.name}, eight samples loaded`
     );
   } else if (status === "downloading") {
     elements.daysLeft.textContent = `Downloading ${detail?.completed ?? 0}/${detail?.total ?? 8}`;
@@ -292,6 +335,184 @@ function renderPackCountdown(pack, offline) {
   } else {
     elements.daysLeft.textContent = daysRemaining === 1 ? "1 day left" : `${daysRemaining} days left`;
   }
+}
+
+function bindPackTransfer() {
+  let returnFocus = null;
+  const directoryPickerAvailable = typeof window.showDirectoryPicker === "function";
+
+  elements.packCard.classList.add("has-pack-transfer");
+  elements.packName.setAttribute("role", "button");
+  elements.packName.setAttribute("tabindex", "0");
+  elements.packName.setAttribute("aria-haspopup", "dialog");
+  elements.packName.setAttribute("aria-controls", "packTransferOverlay");
+
+  const setStatus = (message, isError = false) => {
+    elements.packTransferStatus.textContent = message;
+    elements.packTransferStatus.classList.toggle("is-error", isError);
+  };
+
+  const setBusy = (busy) => {
+    elements.savePackButton.disabled = busy;
+    elements.loadPackButton.disabled = busy;
+  };
+
+  const open = () => {
+    returnFocus = document.activeElement;
+    elements.packTransferOverlay.hidden = false;
+    setBusy(false);
+    setStatus(directoryPickerAvailable
+      ? "Choose an action."
+      : "This browser will use one portable .wgbpack file.");
+    elements.packTransferClose.focus();
+  };
+
+  const close = () => {
+    elements.packTransferOverlay.hidden = true;
+    setStatus("");
+    returnFocus?.focus?.();
+  };
+
+  elements.packName.addEventListener("click", open);
+  elements.packName.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    open();
+  });
+  elements.packTransferClose.addEventListener("click", close);
+  elements.packTransferOverlay.addEventListener("click", (event) => {
+    if (event.target === elements.packTransferOverlay) close();
+  });
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !elements.packTransferOverlay.hidden) close();
+  });
+
+  elements.savePackButton.addEventListener("click", async () => {
+    setBusy(true);
+    try {
+      const snapshot = typeof structuredClone === "function"
+        ? structuredClone(state)
+        : JSON.parse(JSON.stringify(state));
+      if (directoryPickerAvailable) {
+        setStatus("Choose where the new pack folder should be created.");
+        const parentDirectory = await window.showDirectoryPicker({
+          id: "weekly-groovebox-save-pack",
+          mode: "readwrite",
+          startIn: "documents"
+        });
+        const result = await exportPackToDirectory(parentDirectory, {
+          project: snapshot,
+          delivery: activePackDelivery
+        });
+        setStatus(`Saved ${result.directoryName}`);
+      } else {
+        setStatus("Preparing pack file.");
+        const result = await exportPackToFile({
+          project: snapshot,
+          delivery: activePackDelivery
+        });
+        downloadPackFile(result.blob, result.filename);
+        setStatus(`Saved ${result.filename}`);
+      }
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        setStatus(error?.message ?? "The pack could not be saved.", true);
+      } else {
+        setStatus("Save canceled.");
+      }
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  elements.loadPackButton.addEventListener("click", async () => {
+    setBusy(true);
+    try {
+      let imported;
+      if (directoryPickerAvailable) {
+        setStatus("Choose a Weekly Groovebox pack folder.");
+        const directory = await window.showDirectoryPicker({
+          id: "weekly-groovebox-load-pack",
+          mode: "read"
+        });
+        imported = await importPackFromDirectory(directory);
+      } else {
+        setStatus("Choose a .wgbpack file.");
+        imported = await importPackFromFile(await choosePackFile(elements.packFileInput));
+      }
+
+      stopPlayback();
+      const previousPackSource = activePackSource;
+      activePackSource = "imported";
+      try {
+        await audioEngine.loadPack(imported.delivery);
+      } catch (error) {
+        activePackSource = previousPackSource;
+        throw error;
+      }
+
+      state = imported.project;
+      applyPackRootNotes(state, imported.delivery.manifest.tracks);
+      activePackDelivery = imported.delivery;
+      try {
+        await packRepository.put(imported.delivery);
+        localStorage.setItem(IMPORTED_PACK_STORAGE_KEY, imported.delivery.id);
+      } catch {
+        // The imported pack remains usable for this session without durable storage.
+      }
+
+      persistState(false);
+      renderGlobalControls();
+      renderAll();
+      syncProjectAudioSettings();
+      updatePackStatus("imported", imported.delivery);
+      setStatus(`Loaded ${imported.delivery.manifest.name}`);
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        setStatus(error?.message ?? "The pack could not be loaded.", true);
+      } else {
+        setStatus("Load canceled.");
+      }
+    } finally {
+      setBusy(false);
+    }
+  });
+}
+
+function choosePackFile(input) {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      input.removeEventListener("change", change);
+      input.removeEventListener("cancel", cancel);
+    };
+    const change = () => {
+      const [file] = input.files;
+      cleanup();
+      if (file) resolve(file);
+      else cancel();
+    };
+    const cancel = () => {
+      cleanup();
+      reject(new DOMException("File selection canceled.", "AbortError"));
+    };
+
+    input.value = "";
+    input.addEventListener("change", change, { once: true });
+    input.addEventListener("cancel", cancel, { once: true });
+    input.click();
+  });
+}
+
+function downloadPackFile(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.hidden = true;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
 }
 
 function bindTouchSafeClick(button, action) {

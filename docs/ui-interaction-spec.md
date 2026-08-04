@@ -1113,6 +1113,14 @@ Refreshing or reopening the installed PWA should restore the last saved project 
 
 # Explicitly excluded from the first UI
 
+Tapping the weekly pack name opens a compact dialog with **Save pack** and
+**Load pack** actions. Save asks for a parent directory and creates a new
+self-contained folder containing all pattern data, settings, the manifest and
+all eight sounds. Load asks for one of those folders and replaces the current
+pattern state after verifying every sound. On browsers without folder access,
+the same workflow uses one portable `.wgbpack` file instead. This does not add
+general pack browsing or user-sample import to the instrument.
+
 Do not add the following to the main interface unless requested later:
 
 - User sample import

@@ -60,6 +60,7 @@ Status: complete
 
 - Explicit project schema migrations
 - Multiple local projects
+- Self-contained pattern pack save/load — complete
 - Render/export without muted tracks
 - WAV export
 - Recovery tests for interrupted saves

@@ -117,6 +117,28 @@
       </section>
 
       <div class="save-status" id="saveStatus" aria-live="polite">Saved locally</div>
+
+      <div class="pack-transfer-overlay" id="packTransferOverlay" hidden>
+        <section
+          class="pack-transfer-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="packTransferTitle"
+          aria-describedby="packTransferDescription"
+        >
+          <button class="pack-transfer-close" id="packTransferClose" type="button" aria-label="Close pack menu">×</button>
+          <span class="pack-transfer-kicker">Pack library</span>
+          <h2 id="packTransferTitle">Pattern pack</h2>
+          <p id="packTransferDescription">Save or load the complete project: all patterns, settings and eight sounds.</p>
+          <div class="pack-transfer-actions">
+            <button class="pack-transfer-action" id="savePackButton" type="button">Save pack</button>
+            <button class="pack-transfer-action" id="loadPackButton" type="button">Load pack</button>
+          </div>
+          <input id="packFileInput" type="file" accept=".wgbpack,application/vnd.weekly-groovebox.pack+json" hidden>
+          <p class="pack-transfer-note">Loading replaces the current pattern state. Folder access is used when available; other browsers use one portable pack file.</p>
+          <p class="pack-transfer-status" id="packTransferStatus" role="status" aria-live="polite"></p>
+        </section>
+      </div>
     </main>
 
     <script type="module" src="./bootstrap.mjs?v=dev"></script>

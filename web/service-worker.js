@@ -11,6 +11,7 @@ const APP_SHELL = [
   "./keyboard.mjs?v=dev",
   "./layout.mjs?v=dev",
   "./pack-delivery.mjs?v=dev",
+  "./pack-transfer.mjs?v=dev",
   "./pwa.mjs?v=dev",
   "./sequencer.mjs?v=dev",
   "./state.mjs?v=dev",
