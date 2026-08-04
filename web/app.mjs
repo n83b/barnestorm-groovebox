@@ -32,6 +32,7 @@ import {
   toggleStep
 } from "./state.mjs?v=dev";
 import { AudioEngine } from "./audio-engine.mjs?v=dev";
+import { loadDemoProject } from "./demo-projects.mjs?v=dev";
 import {
   IndexedDbPackRepository,
   PackDelivery,
@@ -196,7 +197,7 @@ async function initializeAudio() {
     const result = await loadStartupPack();
     activePackDelivery = result.delivery;
     activePackSource = result.imported ? "imported" : result.offline ? "offline" : "weekly";
-    activateProjectForPack(result.delivery.manifest);
+    await activateProjectForPack(result.delivery.manifest);
     await audioEngine.loadPack(result.delivery);
     if (result.imported) updatePackStatus("imported", result.delivery);
     renderTracks();
@@ -242,15 +243,20 @@ function syncProjectAudioSettings() {
   audioEngine.setCompressor(state.compressor);
 }
 
-function activateProjectForPack(manifest) {
+async function activateProjectForPack(manifest) {
   const packId = manifest.id;
   const trackRootNotes = manifest.tracks.map((track) => track.rootNote);
 
   if (!state.packId) {
-    state.packId = packId;
+    if (hasLegacyProject()) {
+      state.packId = packId;
+    } else {
+      state = await createFreshProjectForPack(packId, trackRootNotes);
+    }
   } else if (state.packId !== packId) {
     persistState(false);
-    state = loadProjectForPack(packId) ?? createInitialState(packId, trackRootNotes);
+    state = loadProjectForPack(packId)
+      ?? await createFreshProjectForPack(packId, trackRootNotes);
   }
 
   applyPackRootNotes(state, manifest.tracks);
@@ -258,6 +264,23 @@ function activateProjectForPack(manifest) {
   renderGlobalControls();
   renderAll();
   syncProjectAudioSettings();
+}
+
+function hasLegacyProject() {
+  try {
+    return localStorage.getItem(LEGACY_STORAGE_KEY) != null;
+  } catch {
+    return false;
+  }
+}
+
+async function createFreshProjectForPack(packId, trackRootNotes) {
+  try {
+    return await loadDemoProject(packId)
+      ?? createInitialState(packId, trackRootNotes);
+  } catch {
+    return createInitialState(packId, trackRootNotes);
+  }
 }
 
 function handleAudioEngineStatus(status, detail) {

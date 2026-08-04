@@ -67,6 +67,9 @@ test("disables iOS long-press selection and callouts inside the instrument", asy
 test("caches the pack transfer module with the application shell", async () => {
   const serviceWorker = await readFile(new URL("service-worker.js", webDirectory), "utf8");
   assert.match(serviceWorker, /"\.\/pack-transfer\.mjs\?v=dev"/);
+  assert.match(serviceWorker, /"\.\/demo-projects\.mjs\?v=dev"/);
+  assert.match(serviceWorker, /"\.\/assets\/packs\/2026-week-32-pumpin-techno\/demo-project\.json"/);
+  assert.match(serviceWorker, /url\.pathname\.endsWith\("\/demo-project\.json"\)/);
 });
 
 test("requires Home Screen launch on mobile but not desktop", () => {

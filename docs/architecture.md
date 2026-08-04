@@ -130,6 +130,13 @@ so malformed or older partial data cannot break the instrument. The original
 unscoped project key is treated as legacy state and is attached to the first
 successfully delivered pack without losing edits.
 
+Pack-scoped demo projects can provide the starting patterns for a fresh weekly
+draft. The current pack's demo project is loaded only when no saved project or
+legacy draft exists, then passes through the same restore and pack-root-note
+normalisation as user projects. Existing work is therefore never replaced when
+demo patterns are updated. Demo project assets are part of the offline shell so
+a first draft can still be created from them without a network connection.
+
 The weekly pack name opens a pack transfer tool. Its versioned format stores
 the complete project state, the immutable pack manifest and all eight WAV
 files. Browsers with the File System Access API write a folder; other browsers

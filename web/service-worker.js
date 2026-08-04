@@ -7,6 +7,7 @@ const APP_SHELL = [
   "./app.mjs?v=dev",
   "./audio-engine.mjs?v=dev",
   "./bootstrap.mjs?v=dev",
+  "./demo-projects.mjs?v=dev",
   "./install-mode.mjs?v=dev",
   "./keyboard.mjs?v=dev",
   "./layout.mjs?v=dev",
@@ -19,7 +20,8 @@ const APP_SHELL = [
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
   "./icons/apple-touch-icon.png",
-  "./assets/barnestorm-install-logo.png"
+  "./assets/barnestorm-install-logo.png",
+  "./assets/packs/2026-week-32-pumpin-techno/demo-project.json"
 ];
 
 self.addEventListener("install", (event) => {
@@ -67,7 +69,8 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (["script", "style", "image"].includes(request.destination)) {
+  const isDemoProject = url.pathname.endsWith("/demo-project.json");
+  if (["script", "style", "image"].includes(request.destination) || isDemoProject) {
     event.respondWith(
       caches.match(request).then(
         (cached) =>
