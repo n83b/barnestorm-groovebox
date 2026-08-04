@@ -56,8 +56,8 @@ Avoid excessive gradients, decorative effects or DAW-style complexity.
 The interface should feel polished and physical, with buttons and knobs appearing slightly raised from the surface.
 
 All rotary knobs use horizontal dragging only. Dragging right increases the
-value and dragging left decreases it; vertical movement has no effect. A
-floating bubble shows the knob's formatted value throughout the drag.
+value and dragging left decreases it; vertical movement has no effect. The
+weekly pack display shows the knob's formatted value throughout the drag.
 
 Do not copy Roland branding, trademarks or exact product styling.
 
@@ -106,6 +106,11 @@ The banner should display:
 - Pack name
 - Number of samples
 - Time remaining until the next pack
+
+A reserved transient line beneath the sample count and time remaining displays
+the formatted value while a knob or step is being adjusted. It remains hidden
+at all other times, and replacing the previous floating popup must not change
+the fixed header height.
 
 The status dot may be green when the pack is available and fully downloaded.
 
@@ -553,7 +558,7 @@ Preferred interactions:
 - Drag left or right to adjust; ignore vertical movement
 - Fine adjustment with a modifier key on desktop
 - Double-tap or double-click to restore the default value
-- Display the current formatted value in a floating bubble while editing
+- Display the current formatted value in the weekly pack banner while editing
 
 Do not require users to rotate their finger in a circle around the knob.
 
@@ -746,8 +751,8 @@ This allows users to build melodies by ear without opening another editor.
 While editing:
 
 - The selected step remains highlighted.
-- A floating label appears above the edited step.
-- The label displays the currently selected note.
+- A transient value appears below the weekly pack metadata.
+- The value displays the currently selected note.
 
 For example:
 
@@ -759,7 +764,7 @@ A3
 C4
 ```
 
-The floating label disappears immediately when the user releases their finger.
+The transient value disappears immediately when the user releases their finger.
 
 ## Note Range
 
@@ -818,7 +823,7 @@ Internally, MIDI velocity values should be preserved.
 
 While editing:
 
-- A floating velocity value is displayed.
+- A transient velocity value is displayed below the weekly pack metadata.
 
 For example:
 

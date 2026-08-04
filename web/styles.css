@@ -310,6 +310,29 @@ input:focus-visible {
   font-size: clamp(0.56rem, 1cqw, 0.98rem);
 }
 
+.pack-edit-status {
+  min-width: 0;
+  min-height: 1em;
+  margin-top: clamp(2px, 0.35cqh, 5px);
+  overflow: hidden;
+  color: var(--orange-soft);
+  font-size: clamp(0.48rem, 0.74cqw, 0.72rem);
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0.065em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 100ms ease, visibility 0s linear 100ms;
+}
+
+.pack-edit-status.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
 .availability-dot {
   width: 0.55em;
   height: 0.55em;
@@ -1109,31 +1132,6 @@ input:focus-visible {
 
 .global-controls .knob {
   width: min(6.7cqh, 4.2cqw, 60px);
-}
-
-.edit-bubble {
-  position: fixed;
-  z-index: 20;
-  display: none;
-  min-width: 72px;
-  padding: 6px 10px;
-  border: 1px solid var(--orange);
-  border-radius: 6px;
-  background: rgba(8, 9, 9, 0.96);
-  color: #fff;
-  box-shadow: 0 5px 16px #000;
-  text-align: center;
-  font-size: 0.78rem;
-  pointer-events: none;
-  transform: translate(-50%, -115%);
-}
-
-.edit-bubble.is-visible {
-  display: block;
-}
-
-.edit-bubble.is-below {
-  transform: translate(-50%, 15%);
 }
 
 .save-status {

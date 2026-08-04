@@ -58,9 +58,9 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const elements = {
   availabilityDot: document.querySelector("#availabilityDot"),
   daysLeft: document.querySelector("#daysLeft"),
-  editBubble: document.querySelector("#editBubble"),
   globalControls: document.querySelector("#globalControls"),
   packCard: document.querySelector("#packCard"),
+  packEditStatus: document.querySelector("#packEditStatus"),
   packName: document.querySelector("#packName"),
   parameterList: document.querySelector("#parameterList"),
   patternLengthLabel: document.querySelector("#patternLengthLabel"),
@@ -530,7 +530,7 @@ function bindStepGesture(button, stepIndex) {
     }
 
     button.style.setProperty("--velocity-fill", `${Math.max(13, (step.velocity / 127) * 100)}%`);
-    updateEditBubble(button, step);
+    updateEditStatus(step);
     previewEditedStep(step);
   });
 
@@ -540,7 +540,7 @@ function bindStepGesture(button, stepIndex) {
     window.clearTimeout(editSession.timer);
     const session = editSession;
     editSession = null;
-    hideEditBubble();
+    hideEditStatus();
 
     if (session.editing) {
       persistState();
@@ -570,7 +570,7 @@ function bindStepGesture(button, stepIndex) {
     if (!editSession || editSession.pointerId !== event.pointerId) return;
     window.clearTimeout(editSession.timer);
     editSession = null;
-    hideEditBubble();
+    hideEditStatus();
     renderSteps();
   });
 }
@@ -582,7 +582,7 @@ function beginStepEdit(session) {
   const step = getSelectedPatternTrack(state).steps[session.stepIndex];
   session.lastPreviewAt = 0;
   session.lastPreviewNote = step.note;
-  updateEditBubble(session.button, step);
+  updateEditStatus(step);
 }
 
 function previewEditedStep(step) {
@@ -602,25 +602,21 @@ function previewEditedStep(step) {
   audioEngine.preview(state.selectedTrack, step.note, step.velocity).catch(() => {});
 }
 
-function updateEditBubble(button, step) {
+function updateEditStatus(step) {
   const note = TRACKS[state.selectedTrack].kind === "chromatic" ? `${formatNote(step.note)} · ` : "";
 
-  showEditBubble(button, `${note}Vel ${step.velocity}`);
+  showEditStatus(`${note}Vel ${step.velocity}`);
 }
 
-function showEditBubble(anchor, text) {
-  const rect = anchor.getBoundingClientRect();
-  const showBelow = rect.top < 48;
-
-  elements.editBubble.textContent = text;
-  elements.editBubble.style.left = `${rect.left + rect.width / 2}px`;
-  elements.editBubble.style.top = `${showBelow ? rect.bottom : rect.top}px`;
-  elements.editBubble.classList.toggle("is-below", showBelow);
-  elements.editBubble.classList.add("is-visible");
+function showEditStatus(text) {
+  elements.packEditStatus.textContent = text;
+  elements.packEditStatus.setAttribute("aria-hidden", "false");
+  elements.packEditStatus.classList.add("is-visible");
 }
 
-function hideEditBubble() {
-  elements.editBubble.classList.remove("is-visible");
+function hideEditStatus() {
+  elements.packEditStatus.classList.remove("is-visible");
+  elements.packEditStatus.setAttribute("aria-hidden", "true");
 }
 
 function renderPatterns() {
@@ -1020,7 +1016,7 @@ function createKnob({
       startValue: value()
     };
     knob.setPointerCapture(event.pointerId);
-    showEditBubble(knob, `${label} · ${format(drag.startValue)}`);
+    showEditStatus(`${label} · ${format(drag.startValue)}`);
   });
 
   knob.addEventListener("pointermove", (event) => {
@@ -1032,14 +1028,14 @@ function createKnob({
     const nextValue = onChange(clamp(roundedValue, min, max));
     control.classList.toggle("is-automation-write", Boolean(automationKey && shiftHeld));
     applyVisualValue(nextValue);
-    showEditBubble(knob, `${label} · ${format(nextValue)}`);
+    showEditStatus(`${label} · ${format(nextValue)}`);
   });
 
   const finishDrag = (event) => {
     if (!drag || drag.pointerId !== event.pointerId) return;
     drag = null;
     control.classList.remove("is-automation-write");
-    hideEditBubble();
+    hideEditStatus();
     input.blur();
   };
 
