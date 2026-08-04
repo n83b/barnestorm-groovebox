@@ -133,11 +133,12 @@ successfully delivered pack without losing edits.
 The weekly pack name opens a pack transfer tool. Its versioned format stores
 the complete project state, the immutable pack manifest and all eight WAV
 files. Browsers with the File System Access API write a folder; other browsers
-download the same data as one `.wgbpack` file. Import verifies each sample's
-byte length and SHA-256 hash before decoding it, then saves the imported
-delivery to the same IndexedDB repository and restores its pattern data. An
-imported pack remains the active project across launches until another pack is
-loaded.
+use one portable `.wgbpack` file. On iPhone and iPad the app prepares that file
+while the pack dialog is open, then uses the native share sheet so the user can
+choose **Save to Files** and the Downloads folder. Import verifies each sample's
+byte length and SHA-256 hash before decoding it, then saves the imported delivery
+to the same IndexedDB repository and restores its pattern data. An imported pack
+remains the active project across launches until another pack is loaded.
 
 Weekly audio packs use a separate IndexedDB repository. A small, revalidated
 `assets/packs/current.json` file points to an immutable pack manifest. The app

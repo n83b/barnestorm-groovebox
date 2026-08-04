@@ -43,6 +43,7 @@ import {
   importPackFromDirectory,
   importPackFromFile
 } from "./pack-transfer.mjs?v=dev";
+import { isAppleMobile } from "./install-mode.mjs?v=dev";
 import {
   getShiftActionModifier,
   getShiftModifierState,
@@ -339,7 +340,15 @@ function renderPackCountdown(pack, offline) {
 
 function bindPackTransfer() {
   let returnFocus = null;
+  let preparedShareExport = null;
+  let preparationGeneration = 0;
   const directoryPickerAvailable = typeof window.showDirectoryPicker === "function";
+  const appleMobile = isAppleMobile({
+    userAgent: navigator.userAgent,
+    platform: navigator.platform,
+    maxTouchPoints: navigator.maxTouchPoints
+  });
+  const fileShareAvailable = appleMobile && canSharePackFile();
 
   elements.packCard.classList.add("has-pack-transfer");
   elements.packName.setAttribute("role", "button");
@@ -353,21 +362,48 @@ function bindPackTransfer() {
   };
 
   const setBusy = (busy) => {
-    elements.savePackButton.disabled = busy;
+    elements.savePackButton.disabled = busy || (fileShareAvailable && !preparedShareExport);
     elements.loadPackButton.disabled = busy;
   };
+
+  const createProjectSnapshot = () => typeof structuredClone === "function"
+    ? structuredClone(state)
+    : JSON.parse(JSON.stringify(state));
 
   const open = () => {
     returnFocus = document.activeElement;
     elements.packTransferOverlay.hidden = false;
-    setBusy(false);
-    setStatus(directoryPickerAvailable
-      ? "Choose an action."
-      : "This browser will use one portable .wgbpack file.");
+    elements.savePackButton.textContent = fileShareAvailable ? "Save to Files" : "Save pack";
+    preparedShareExport = null;
+    const generation = ++preparationGeneration;
+
+    if (fileShareAvailable) {
+      setStatus("Preparing the pack for Files…");
+      setBusy(false);
+      exportPackToFile({
+        project: createProjectSnapshot(),
+        delivery: activePackDelivery
+      }).then((result) => {
+        if (generation !== preparationGeneration) return;
+        preparedShareExport = result;
+        setStatus("Tap Save to Files, then choose Downloads.");
+        setBusy(false);
+      }).catch((error) => {
+        if (generation !== preparationGeneration) return;
+        setStatus(error?.message ?? "The pack could not be prepared.", true);
+      });
+    } else {
+      setBusy(false);
+      setStatus(directoryPickerAvailable
+        ? "Choose an action."
+        : "This browser will use one portable .wgbpack file.");
+    }
     elements.packTransferClose.focus();
   };
 
   const close = () => {
+    preparationGeneration += 1;
+    preparedShareExport = null;
     elements.packTransferOverlay.hidden = true;
     setStatus("");
     returnFocus?.focus?.();
@@ -390,10 +426,12 @@ function bindPackTransfer() {
   elements.savePackButton.addEventListener("click", async () => {
     setBusy(true);
     try {
-      const snapshot = typeof structuredClone === "function"
-        ? structuredClone(state)
-        : JSON.parse(JSON.stringify(state));
-      if (directoryPickerAvailable) {
+      if (fileShareAvailable) {
+        if (!preparedShareExport) throw new Error("The pack is still being prepared.");
+        setStatus("Choose Save to Files, then Downloads.");
+        await sharePackFile(preparedShareExport.blob, preparedShareExport.filename);
+        setStatus("Pack shared successfully.");
+      } else if (directoryPickerAvailable) {
         setStatus("Choose where the new pack folder should be created.");
         const parentDirectory = await window.showDirectoryPicker({
           id: "weekly-groovebox-save-pack",
@@ -401,14 +439,14 @@ function bindPackTransfer() {
           startIn: "documents"
         });
         const result = await exportPackToDirectory(parentDirectory, {
-          project: snapshot,
+          project: createProjectSnapshot(),
           delivery: activePackDelivery
         });
         setStatus(`Saved ${result.directoryName}`);
       } else {
         setStatus("Preparing pack file.");
         const result = await exportPackToFile({
-          project: snapshot,
+          project: createProjectSnapshot(),
           delivery: activePackDelivery
         });
         downloadPackFile(result.blob, result.filename);
@@ -477,6 +515,21 @@ function bindPackTransfer() {
       setBusy(false);
     }
   });
+}
+
+function canSharePackFile() {
+  if (typeof File !== "function" || typeof navigator.share !== "function") return false;
+  if (typeof navigator.canShare !== "function") return false;
+
+  const probe = new File(["{}"], "weekly-groovebox-pack.wgbpack.json", {
+    type: "application/json"
+  });
+  return navigator.canShare({ files: [probe] });
+}
+
+function sharePackFile(blob, filename) {
+  const file = new File([blob], `${filename}.json`, { type: "application/json" });
+  return navigator.share({ files: [file] });
 }
 
 function choosePackFile(input) {

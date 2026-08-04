@@ -54,4 +54,7 @@ test("the pack name opens save and load actions in every build", async () => {
   assert.match(markup, /id="packFileInput"[^>]*accept="\.wgbpack/);
   assert.match(app, /typeof window\.showDirectoryPicker === "function"/);
   assert.match(app, /downloadPackFile\(result\.blob, result\.filename\)/);
+  assert.match(app, /elements\.savePackButton\.textContent = fileShareAvailable \? "Save to Files"/);
+  assert.match(app, /navigator\.canShare\(\{ files: \[probe\] \}\)/);
+  assert.match(app, /return navigator\.share\(\{ files: \[file\] \}\)/);
 });
