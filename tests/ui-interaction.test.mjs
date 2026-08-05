@@ -28,6 +28,10 @@ test("knob drags show their formatted value in the pack display", async () => {
   assert.match(knobInteraction, /hideEditStatus\(\)/);
   assert.match(markup, /<div class="pack-edit-status" id="packEditStatus"[^>]*><\/div>/);
   assert.doesNotMatch(markup, /edit-bubble/);
+  assert.match(app, /elements\.packCard\.classList\.add\("is-showing-edit-value"\)/);
+  assert.match(app, /elements\.packCard\.classList\.remove\("is-showing-edit-value"\)/);
+  assert.match(stylesheet, /\.pack-card\.is-showing-edit-value \.pack-heading/);
+  assert.match(stylesheet, /font-size:\s*clamp\(1\.35rem, 2\.55cqw, 2rem\)/);
   assert.match(stylesheet, /\.pack-edit-status\.is-visible/);
   assert.match(stylesheet, /cursor:\s*ew-resize/);
 });

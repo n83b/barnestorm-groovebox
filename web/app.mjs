@@ -908,11 +908,13 @@ function updateEditStatus(step) {
 function showEditStatus(text) {
   elements.packEditStatus.textContent = text;
   elements.packEditStatus.setAttribute("aria-hidden", "false");
+  elements.packCard.classList.add("is-showing-edit-value");
   elements.packEditStatus.classList.add("is-visible");
 }
 
 function hideEditStatus() {
   elements.packEditStatus.classList.remove("is-visible");
+  elements.packCard.classList.remove("is-showing-edit-value");
   elements.packEditStatus.setAttribute("aria-hidden", "true");
 }
 

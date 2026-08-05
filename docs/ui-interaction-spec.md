@@ -57,7 +57,8 @@ The interface should feel polished and physical, with buttons and knobs appearin
 
 All rotary knobs use horizontal dragging only. Dragging right increases the
 value and dragging left decreases it; vertical movement has no effect. The
-weekly pack display shows the knob's formatted value throughout the drag.
+weekly pack display temporarily replaces all pack information with a large,
+formatted knob value throughout the drag.
 
 Do not copy Roland branding, trademarks or exact product styling.
 
@@ -107,9 +108,10 @@ The banner should display:
 - Number of samples
 - Time remaining until the next pack
 
-A reserved transient line beneath the sample count and time remaining displays
-the formatted value while a knob or step is being adjusted. It remains hidden
-at all other times, and replacing the previous floating popup must not change
+While a knob or step is being adjusted, all banner information is temporarily
+hidden and replaced by one large, high-contrast formatted value centred in the
+complete banner area. Releasing the control immediately restores the week,
+pack name, sample count and time remaining. This replacement must not change
 the fixed header height.
 
 The status dot may be green when the pack is available and fully downloaded.
@@ -558,7 +560,8 @@ Preferred interactions:
 - Drag left or right to adjust; ignore vertical movement
 - Fine adjustment with a modifier key on desktop
 - Double-tap or double-click to restore the default value
-- Display the current formatted value in the weekly pack banner while editing
+- Temporarily replace the complete weekly pack banner with a large formatted
+  value while editing
 
 Do not require users to rotate their finger in a circle around the knob.
 
@@ -751,7 +754,7 @@ This allows users to build melodies by ear without opening another editor.
 While editing:
 
 - The selected step remains highlighted.
-- A transient value appears below the weekly pack metadata.
+- A large transient value replaces all weekly pack information.
 - The value displays the currently selected note.
 
 For example:
@@ -823,7 +826,7 @@ Internally, MIDI velocity values should be preserved.
 
 While editing:
 
-- A transient velocity value is displayed below the weekly pack metadata.
+- A large transient velocity value replaces all weekly pack information.
 
 For example:
 

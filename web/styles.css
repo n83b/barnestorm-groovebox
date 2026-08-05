@@ -269,6 +269,7 @@ input:focus-visible {
 }
 
 .pack-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -328,21 +329,40 @@ input:focus-visible {
   font-size: clamp(0.56rem, 1cqw, 0.98rem);
 }
 
+.pack-heading,
+.pack-meta {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 80ms ease, visibility 0s;
+}
+
+.pack-card.is-showing-edit-value .pack-heading,
+.pack-card.is-showing-edit-value .pack-meta {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .pack-edit-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
-  min-height: 1em;
-  margin-top: clamp(2px, 0.35cqh, 5px);
+  padding: 0 clamp(10px, 1.5cqw, 24px);
   overflow: hidden;
   color: var(--orange-soft);
-  font-size: clamp(0.48rem, 0.74cqw, 0.72rem);
-  font-weight: 650;
+  font-size: clamp(1.35rem, 2.55cqw, 2rem);
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.065em;
+  letter-spacing: 0.04em;
+  text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
   opacity: 0;
+  pointer-events: none;
   visibility: hidden;
-  transition: opacity 100ms ease, visibility 0s linear 100ms;
+  transition: opacity 80ms ease, visibility 0s linear 80ms;
 }
 
 .pack-edit-status.is-visible {
