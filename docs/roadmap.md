@@ -1,4 +1,4 @@
-# Weekly Groovebox Roadmap
+# Barnestörm Groovebox Roadmap
 
 ## Milestone 1 — Interactive instrument shell
 
@@ -22,7 +22,7 @@ Status: complete
 
 Status: complete
 
-- Define the weekly pack manifest format
+- Define the pack manifest format
 - Add eight licensed development samples
 - Load and decode samples with Web Audio
 - Schedule sixteenth-note playback ahead of time
@@ -51,7 +51,7 @@ Status: complete
 - Web app manifest and product icon set — complete
 - Mobile installed-app launch gate — complete
 - Service-worker application shell — complete
-- IndexedDB weekly pack cache — complete
+- IndexedDB pack cache — complete
 - Offline startup with the most recent downloaded pack — complete
 - Pack download and integrity status — complete
 - Install and resume validation on iOS
@@ -71,7 +71,7 @@ Status: complete
 - VoiceOver and keyboard audit
 - Contrast and reduced-motion audit
 - Performance profiling on supported iPhones
-- Pack rollover and countdown behaviour — complete
+- Pack save/load workflow and persistent selection — complete
 - Final visual polish against the approved mockup
 
 ## Not in MVP

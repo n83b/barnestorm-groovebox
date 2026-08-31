@@ -37,7 +37,7 @@ test("infers pack metadata and a Monday UTC release window from the folder", () 
 });
 
 test("creates a complete manifest and current pointer from eight named WAV files", async (context) => {
-  const temporaryRoot = await mkdtemp(join(tmpdir(), "weekly-groovebox-pack-"));
+  const temporaryRoot = await mkdtemp(join(tmpdir(), "barnestorm-groovebox-pack-"));
   context.after(() => rm(temporaryRoot, { recursive: true, force: true }));
   const packDirectory = join(temporaryRoot, "2026-week-32-found-signals");
   const pointerFile = join(temporaryRoot, "current.json");

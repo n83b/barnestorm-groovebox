@@ -1,4 +1,4 @@
-# Weekly Groovebox
+# Barnestörm Groovebox
 
 A focused eight-track, sample-based groovebox built around one shared weekly sound pack.
 
@@ -26,7 +26,7 @@ The state model uses Node's built-in test runner:
 node --test tests/*.test.mjs
 ```
 
-## Create a weekly pack
+## Create a pack
 
 Create a year-qualified folder under `web/assets/packs/`, add the eight standard
 WAV filenames, then run:
@@ -47,10 +47,10 @@ next visible product pack number, updates the current-pack pointer and validates
 - Shared 16-step sequencer with per-track state
 - Four color-coded banks with eight patterns each, per-bank selection memory and queued switching during playback
 - Play, stop, playhead and swing-aware timing
-- Manifest-driven loading and decoding of the eight-sample weekly pack
+- Manifest-driven loading and decoding of eight-sample packs
 - Integrity-checked weekly delivery through a revalidated current-pack pointer
 - IndexedDB sample-pack caching and offline audio startup
-- Pack-pinned weekly drafts with non-destructive rollover
+- Pack-pinned drafts with persistent explicit pack selection
 - Content-fingerprinted production assets and automatic PWA cache invalidation
 - Web Audio look-ahead scheduling with an audio-synchronised playhead
 - Velocity, mute, chromatic note and per-track transpose playback
@@ -80,7 +80,7 @@ npm run generate:samples
 - `web/pack-delivery.mjs` — current-pack resolution, integrity checks and IndexedDB storage
 - `web/sequencer.mjs` — deterministic timing, event and pitch calculations
 - `web/assets/packs/current.json` — pointer to the currently published immutable pack
-- `web/assets/packs/<pack-id>/manifest.json` — weekly pack metadata and sample map
+- `web/assets/packs/<pack-id>/manifest.json` — pack metadata and sample map
 - `web/layout.mjs` — 1024 × 576 scaling calculations
 - `web/state.mjs` — project data model and state operations
 - `tests/state.test.mjs` — state-model regression tests
@@ -91,5 +91,5 @@ npm run generate:samples
 - `docs/product.md` — product principles
 - `docs/ui-interaction-spec.md` — interaction contract
 - `docs/architecture.md` — implementation architecture
-- `docs/pack-publishing.md` — manual weekly pack publishing workflow
+- `docs/pack-publishing.md` — manual pack publishing workflow
 - `docs/roadmap.md` — milestone plan

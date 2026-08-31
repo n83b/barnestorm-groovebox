@@ -1,4 +1,4 @@
-# Weekly Groovebox Architecture
+# Barnestörm Groovebox Architecture
 
 ## Current approach
 
@@ -120,24 +120,23 @@ changes; the visual playhead catches up as soon as the selector closes.
 ## Persistence
 
 The complete serialisable project state is stored in `localStorage` under a
-pack-scoped versioned key. Each project records its immutable pack id. At weekly
-rollover, the previous weekly draft remains stored under its original pack id
-and a fresh draft is opened for the newly delivered pack. There is no archive
-UI in the MVP, but the saved state remains available for that future feature.
+pack-scoped versioned key. Each project records its immutable pack id. Loading a
+different pack restores that pack's saved project or creates a fresh draft, and
+the previously active draft remains stored under its original pack id.
 
 Restore logic clamps ranges and fills missing values from the current defaults
 so malformed or older partial data cannot break the instrument. The original
 unscoped project key is treated as legacy state and is attached to the first
 successfully delivered pack without losing edits.
 
-Pack-scoped demo projects can provide the starting patterns for a fresh weekly
+Pack-scoped demo projects can provide the starting patterns for a fresh
 draft. The current pack's demo project is loaded only when no saved project or
 legacy draft exists, then passes through the same restore and pack-root-note
 normalisation as user projects. Existing work is therefore never replaced when
 demo patterns are updated. Demo project assets are part of the offline shell so
 a first draft can still be created from them without a network connection.
 
-The weekly pack name opens a pack transfer tool. Its versioned format stores
+The active pack name opens a pack transfer tool. Its versioned format stores
 the complete project state, the immutable pack manifest and all eight WAV
 files. Browsers with the File System Access API write a folder; other browsers
 use one portable `.wgbpack` file. On iPhone and iPad the app prepares that file
@@ -147,21 +146,22 @@ byte length and SHA-256 hash before decoding it, then saves the imported deliver
 to the same IndexedDB repository and restores its pattern data. An imported pack
 remains the active project across launches until another pack is loaded.
 
-Weekly audio packs use a separate IndexedDB repository. A small, revalidated
-`assets/packs/current.json` file points to an immutable pack manifest. The app
+Audio packs use a separate IndexedDB repository. A small, revalidated
+`assets/packs/current.json` file points to the immutable bundled default pack. The app
 downloads all eight samples, verifies byte lengths and SHA-256 hashes, and then
 writes the manifest and sample buffers as one IndexedDB record. This makes pack
 availability atomic: an interrupted download cannot displace the last complete
 pack.
 
-Each manifest keeps the ISO `calendarWeek` used to calculate its release window
-separate from the monotonically increasing `week` displayed by the product. A
+Each manifest keeps the ISO `calendarWeek` publishing metadata separate from the
+monotonically increasing `week` value displayed as `Pack n` by the product. A
 pack's directory and id remain immutable even if the visible sequence is reset.
 
-At launch the current pointer is preferred. When the network or current pack is
-unavailable, the project-pinned cached pack is used, followed by the newest
-complete cached pack as a final fallback. Foreground checks may pre-download a
-new pack, but an open session never changes samples underneath the project.
+At launch an explicitly loaded pack is preferred, followed by the bundled
+default pointer. When the network or default pack is unavailable, the
+project-pinned cached pack is used, followed by the newest complete cached pack
+as a final fallback. An open session never changes samples underneath the
+project.
 
 ## Fixed-ratio layout
 
@@ -217,7 +217,7 @@ sources and its master gain; none of those nodes enter project state. The
 context resumes from direct play/edit gestures and resynchronises its scheduling
 horizon after an interruption.
 
-After decoding a weekly pack, the audio engine downsamples each real sample into
+After decoding a pack, the audio engine downsamples each real sample into
 normalised minimum/maximum amplitude columns across all channels. Track buttons
 render those cached values as sharp SVG waveforms, so their shapes represent the
 active WAV files without rescanning audio data during UI renders.
@@ -240,7 +240,7 @@ Kick events schedule gain ducking on the other seven track strips using the
 global Comp amount. All strips feed a conservatively staged master bus followed
 by a fast Web Audio dynamics compressor configured as a safety limiter.
 
-Weekly packs use a JSON manifest containing pack metadata and exactly eight
+Packs use a JSON manifest containing pack metadata and exactly eight
 ordered track entries. The first four must be drums and the last four chromatic;
 chromatic entries declare a MIDI root note. Sample URLs resolve relative to the
 manifest, so a future pack cache can replace delivery without changing the

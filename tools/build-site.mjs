@@ -7,7 +7,7 @@ const DEFAULT_SOURCE_DIRECTORY = new URL("../web/", import.meta.url);
 const DEFAULT_OUTPUT_DIRECTORY = new URL("../dist/", import.meta.url);
 const DEFAULT_HOSTING_FILE = new URL("../.openai/hosting.json", import.meta.url);
 const VERSION_QUERY_PATTERN = /\?v=[a-zA-Z0-9._-]+/g;
-const SHELL_CACHE_PATTERN = /weekly-groovebox-shell-[a-zA-Z0-9._-]+/g;
+const SHELL_CACHE_PATTERN = /barnestorm-groovebox-shell-[a-zA-Z0-9._-]+/g;
 const VERSIONED_TEXT_EXTENSIONS = new Set([".css", ".html", ".js", ".mjs"]);
 
 export async function buildSite({
@@ -73,7 +73,7 @@ export function replaceReleaseFingerprint(source, buildId) {
   }
   return source
     .replace(VERSION_QUERY_PATTERN, `?v=${buildId}`)
-    .replace(SHELL_CACHE_PATTERN, `weekly-groovebox-shell-${buildId}`);
+    .replace(SHELL_CACHE_PATTERN, `barnestorm-groovebox-shell-${buildId}`);
 }
 
 async function listFiles(directory) {
@@ -96,5 +96,5 @@ function isMainModule() {
 
 if (isMainModule()) {
   const { buildId } = await buildSite();
-  process.stdout.write(`Built Weekly Groovebox release ${buildId}.\n`);
+  process.stdout.write(`Built Barnestörm Groovebox release ${buildId}.\n`);
 }

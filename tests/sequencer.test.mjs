@@ -81,7 +81,7 @@ test("converts chromatic notes and track transpose to playback rates", () => {
   }), 0.5);
 });
 
-test("requires four drum and four chromatic samples in a weekly pack", () => {
+test("requires four drum and four chromatic samples in a pack", () => {
   const pack = {
     id: "test",
     week: 31,

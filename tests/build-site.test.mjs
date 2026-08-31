@@ -13,17 +13,17 @@ test("replaces development versions and the shell cache with one release fingerp
   const source = `
     import "./app.mjs?v=dev";
     const stylesheet = "./styles.css?v=16";
-    const cache = "weekly-groovebox-shell-dev";
+    const cache = "barnestorm-groovebox-shell-dev";
   `;
   const output = replaceReleaseFingerprint(source, buildId);
 
   assert.doesNotMatch(output, /\?v=(?:dev|16)/);
   assert.equal(output.match(new RegExp(`\\?v=${buildId}`, "g")).length, 2);
-  assert.match(output, new RegExp(`weekly-groovebox-shell-${buildId}`));
+  assert.match(output, new RegExp(`barnestorm-groovebox-shell-${buildId}`));
 });
 
 test("changes the build fingerprint whenever source content changes", async (context) => {
-  const directory = await mkdtemp(join(tmpdir(), "weekly-groovebox-build-"));
+  const directory = await mkdtemp(join(tmpdir(), "barnestorm-groovebox-build-"));
   context.after(() => rm(directory, { recursive: true, force: true }));
   const filename = join(directory, "app.mjs");
 

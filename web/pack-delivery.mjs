@@ -1,6 +1,6 @@
 import { validatePackManifest } from "./sequencer.mjs?v=dev";
 
-const DATABASE_NAME = "weekly-groovebox-packs";
+const DATABASE_NAME = "barnestorm-groovebox-packs";
 const DATABASE_VERSION = 1;
 const PACK_STORE = "packs";
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;

@@ -50,7 +50,7 @@ if (requireInstall) {
 
     if (choice.outcome === "accepted") {
       installButton.hidden = true;
-      installStatus.textContent = "Installed. Open Barnestørm from your Home Screen.";
+      installStatus.textContent = "Installed. Open Barnestörm Groovebox from your Home Screen.";
     } else {
       installButton.disabled = false;
     }
@@ -58,7 +58,7 @@ if (requireInstall) {
 
   window.addEventListener("appinstalled", () => {
     installButton.hidden = true;
-    installStatus.textContent = "Installed. Open Barnestørm from your Home Screen.";
+    installStatus.textContent = "Installed. Open Barnestörm Groovebox from your Home Screen.";
   });
 } else {
   document.body.classList.remove("pwa-checking");

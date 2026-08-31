@@ -1,6 +1,6 @@
-# Weekly Groovebox Cheatsheet
+# Barnestörm Groovebox Cheatsheet
 
-## Create a weekly pack
+## Create a pack
 
 Create a folder under `web/assets/packs/` using this exact format:
 
@@ -40,9 +40,9 @@ This creates the pack's `manifest.json`, calculates file sizes and SHA-256
 hashes, sets the UTC release window, assigns the next product pack number, and updates
 `web/assets/packs/current.json`.
 
-The `WW` in the folder is the ISO calendar week used for release dates. The
-app's visible `WEEK` number is a separate sequence: the first pack is Week 1,
-then each new pack becomes Week 2, Week 3, and so on. Re-running the command for
+The `WW` in the folder is the ISO calendar week used as publishing metadata. The
+app's visible `PACK` number is a separate sequence: the first pack is Pack 1,
+then each new pack becomes Pack 2, Pack 3, and so on. Re-running the command for
 an existing pack keeps its assigned number.
 
 Only run `create:pack` when the pack is ready to become the current pack.

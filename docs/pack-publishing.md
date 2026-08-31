@@ -1,6 +1,6 @@
-# Publishing a weekly pack
+# Publishing a pack
 
-Weekly packs are published with the application as immutable static assets. The
+Packs are published with the application as immutable static assets. The
 installed app checks `web/assets/packs/current.json` when it launches and when
 it returns to the foreground. A foreground check downloads a new pack for the
 next launch without changing the pack in the current session.

@@ -1,8 +1,8 @@
-# Weekly Groovebox UI Notes
+# Barnestörm Groovebox UI Notes
 
 ## Purpose
 
-Weekly Groovebox is a compact, eight-track sample-based groovebox designed for iPhone in landscape orientation.
+Barnestörm Groovebox is a compact, eight-track sample-based groovebox designed for iPhone in landscape orientation.
 
 The interface should feel like a dedicated hardware instrument rather than a conventional DAW. It should be immediate, tactile, minimal and easy to operate with two hands.
 
@@ -57,7 +57,7 @@ The interface should feel polished and physical, with buttons and knobs appearin
 
 All rotary knobs use horizontal dragging only. Dragging right increases the
 value and dragging left decreases it; vertical movement has no effect. The
-weekly pack display temporarily replaces all pack information with a large,
+pack display temporarily replaces all pack information with a large,
 formatted knob value throughout the drag.
 
 Do not copy Roland branding, trademarks or exact product styling.
@@ -68,8 +68,8 @@ Do not copy Roland branding, trademarks or exact product styling.
 
 The header contains the following elements from left to right:
 
-1. Weekly Groovebox logo
-2. Weekly pack banner
+1. Barnestörm Groovebox logo
+2. Pack banner
 3. Tempo control
 4. Swing control
 5. Comp control
@@ -77,41 +77,35 @@ The header contains the following elements from left to right:
 7. Stop button
 8. Shift button
 
-## Weekly Groovebox logo
+## Barnestörm Groovebox logo
 
-Display the working Weekly Groovebox logo at the far left.
+Display the working Barnestörm Groovebox logo at the far left.
 
-Do not add the Barnestørm company branding to this interface yet.
+## Pack banner
 
-## Weekly pack banner
+The pack banner appears immediately after the Barnestörm Groovebox logo.
 
-The weekly pack banner appears immediately after the Weekly Groovebox logo.
-
-It uses three lines:
+It uses two lines:
 
 ```text
-WEEK 31
-
-BROKEN MACHINERY
-
-● 8 SAMPLES • 5 DAYS LEFT
+PACK 2 • PUMPIN TECHNO
+● 8 SAMPLES
 ```
 
 The pack name should be the most prominent line.
 
-The pack banner must not contain previous or next arrows. Users cannot browse or manually select another active weekly pack from the main interface.
+The pack banner must not contain previous or next arrows. Tapping the pack name opens the save/load dialog so users can explicitly choose another pack.
 
 The banner should display:
 
-- Current week number
+- Pack sequence number
 - Pack name
 - Number of samples
-- Time remaining until the next pack
 
 While a knob or step is being adjusted, all banner information is temporarily
 hidden and replaced by one large, high-contrast formatted value centred in the
-complete banner area. Releasing the control immediately restores the week,
-pack name, sample count and time remaining. This replacement must not change
+complete banner area. Releasing the control immediately restores the pack
+number, pack name and sample count. This replacement must not change
 the fixed header height.
 
 The status dot may be green when the pack is available and fully downloaded.
@@ -289,7 +283,7 @@ Each sample button displays:
 
 Do not use drum or instrument icons. Every track should show a waveform derived
 from the actual loaded WAV sample. Generate it from the decoded audio data so a
-new weekly pack automatically displays its own eight waveform shapes.
+newly loaded pack automatically displays its own eight waveform shapes.
 
 ## Track colours
 
@@ -560,7 +554,7 @@ Preferred interactions:
 - Drag left or right to adjust; ignore vertical movement
 - Fine adjustment with a modifier key on desktop
 - Double-tap or double-click to restore the default value
-- Temporarily replace the complete weekly pack banner with a large formatted
+- Temporarily replace the complete pack banner with a large formatted
   value while editing
 
 Do not require users to rotate their finger in a circle around the knob.
@@ -754,7 +748,7 @@ This allows users to build melodies by ear without opening another editor.
 While editing:
 
 - The selected step remains highlighted.
-- A large transient value replaces all weekly pack information.
+- A large transient value replaces all pack information.
 - The value displays the currently selected note.
 
 For example:
@@ -784,7 +778,7 @@ This range should be configurable so it can be expanded later.
 If the step already contains a note, editing begins from that note rather than resetting to a default.
 
 In a fresh or cleared pattern, each chromatic step begins at that track's root
-note declared by the active weekly pack manifest.
+note declared by the active pack manifest.
 
 When activating an untouched chromatic step in a non-empty track sequence, copy
 the track's most recently entered or edited note into that step. If the sequence
@@ -826,7 +820,7 @@ Internally, MIDI velocity values should be preserved.
 
 While editing:
 
-- A large transient velocity value replaces all weekly pack information.
+- A large transient velocity value replaces all pack information.
 
 For example:
 
@@ -897,7 +891,7 @@ A complete pattern should be programmable using only:
 
 No secondary editing screens or permanent piano keyboard should be required.
 
-The goal is for users to build rhythms and melodies quickly while keeping their focus entirely on the sequencer, reinforcing the philosophy that Weekly Groovebox is a compact musical instrument rather than a traditional DAW.
+The goal is for users to build rhythms and melodies quickly while keeping their focus entirely on the sequencer, reinforcing the philosophy that Barnestörm Groovebox is a compact musical instrument rather than a traditional DAW.
 
 ---
 
@@ -1116,7 +1110,7 @@ Refreshing or reopening the installed PWA should restore the last saved project 
 
 # Explicitly excluded from the first UI
 
-Tapping the weekly pack name opens a compact dialog with **Save pack** and
+Tapping the active pack name opens a compact dialog with **Save pack** and
 **Load pack** actions. Save asks for a parent directory and creates a new
 self-contained folder containing all pattern data, settings, the manifest and
 all eight sounds. Load asks for one of those folders and replaces the current
@@ -1143,7 +1137,6 @@ Do not add the following to the main interface unless requested later:
 - Community voting
 - Plugin controls
 - Large piano keyboard
-- Barnestørm branding
 - Settings cog
 - Mute and solo knobs or dedicated buttons
 - Extra transport controls

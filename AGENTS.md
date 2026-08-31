@@ -1,4 +1,4 @@
-# Weekly Groovebox instructions
+# Barnestörm Groovebox instructions
 
 Before making implementation decisions, read:
 

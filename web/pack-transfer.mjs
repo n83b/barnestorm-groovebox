@@ -4,10 +4,10 @@ import { validatePackManifest } from "./sequencer.mjs?v=dev";
 
 export const PACK_PROJECT_FILENAME = "project.json";
 export const PACK_MANIFEST_FILENAME = "manifest.json";
-export const PACK_TRANSFER_FORMAT = "weekly-groovebox-pack";
+export const PACK_TRANSFER_FORMAT = "barnestorm-groovebox-pack";
 export const PACK_TRANSFER_SCHEMA_VERSION = 1;
 export const PACK_TRANSFER_FILE_EXTENSION = ".wgbpack";
-export const PACK_TRANSFER_MIME_TYPE = "application/vnd.weekly-groovebox.pack+json";
+export const PACK_TRANSFER_MIME_TYPE = "application/vnd.barnestorm-groovebox.pack+json";
 
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 
@@ -19,7 +19,7 @@ export function createExportDirectoryName(packName, exportedAt = new Date()) {
     .toLowerCase()
     .slice(0, 40) || "pack";
   const timestamp = new Date(exportedAt).toISOString().replace(/[:.]/g, "-");
-  return `weekly-groovebox-${slug}-${timestamp}`;
+  return `barnestorm-groovebox-${slug}-${timestamp}`;
 }
 
 export async function exportPackToDirectory(parentDirectory, {
@@ -56,7 +56,7 @@ export async function importPackFromDirectory(directory, {
     projectFile?.format !== PACK_TRANSFER_FORMAT
     || projectFile?.schemaVersion !== PACK_TRANSFER_SCHEMA_VERSION
   ) {
-    throw new TypeError("This folder is not a supported Weekly Groovebox pack.");
+    throw new TypeError("This folder is not a supported Barnestörm Groovebox pack.");
   }
 
   const manifest = await readJsonFile(
@@ -105,7 +105,7 @@ export async function exportPackToFile({
 export async function importPackFromFile(file, {
   importedAt = new Date()
 } = {}) {
-  if (!file?.text) throw new TypeError("A Weekly Groovebox pack file is required.");
+  if (!file?.text) throw new TypeError("A Barnestörm Groovebox pack file is required.");
 
   let payload;
   try {
@@ -199,7 +199,7 @@ async function assembleImportedPack({ projectFile, manifest: rawManifest, import
     projectFile?.format !== PACK_TRANSFER_FORMAT
     || projectFile?.schemaVersion !== PACK_TRANSFER_SCHEMA_VERSION
   ) {
-    throw new TypeError("This is not a supported Weekly Groovebox pack.");
+    throw new TypeError("This is not a supported Barnestörm Groovebox pack.");
   }
 
   const manifest = validatePackManifest(rawManifest);

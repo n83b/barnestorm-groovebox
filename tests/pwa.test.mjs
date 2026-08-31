@@ -16,8 +16,8 @@ test("declares a standalone landscape web app for Home Screen launch", async () 
   );
 
   assert.equal(manifest.display, "standalone");
-  assert.equal(manifest.name, "Barnestørm");
-  assert.equal(manifest.short_name, "Barnestørm");
+  assert.equal(manifest.name, "Barnestörm Groovebox");
+  assert.equal(manifest.short_name, "Barnestörm Groovebox");
   assert.equal(manifest.orientation, "landscape");
   assert.equal(manifest.start_url, "./");
   assert.equal(manifest.scope, "./");
@@ -47,13 +47,13 @@ test("links the manifest, Apple metadata and app-shell registration", async () =
   const registration = await readFile(new URL("pwa.mjs", webDirectory), "utf8");
 
   assert.match(html, /rel="manifest" href="\.\/manifest\.webmanifest"/);
-  assert.match(html, /apple-mobile-web-app-title" content="Barnestørm"/);
+  assert.match(html, /apple-mobile-web-app-title" content="Barnestörm Groovebox"/);
   assert.match(html, /name="apple-mobile-web-app-capable" content="yes"/);
   assert.match(html, /rel="apple-touch-icon"/);
   assert.match(html, /src="\.\/bootstrap\.mjs\?v=dev"/);
   assert.doesNotMatch(html, /src="\.\/app\.mjs/);
   assert.match(html, /id="installGate"/);
-  assert.match(html, /src="\.\/assets\/barnestorm-install-logo\.png"/);
+  assert.match(html, /class="install-logo" aria-label="Barnestörm Groovebox"/);
   assert.match(registration, /serviceWorker\.register\("\.\/service-worker\.js"/);
 });
 

@@ -50,14 +50,14 @@ export function getPlaybackRate({ kind, note, rootNote, transpose = 0 }) {
 
 export function validatePackManifest(pack) {
   if (!pack || typeof pack !== "object") {
-    throw new TypeError("The weekly pack manifest must be an object.");
+    throw new TypeError("The pack manifest must be an object.");
   }
   if (pack.schemaVersion != null && pack.schemaVersion !== 1) {
-    throw new TypeError("The weekly pack manifest has an unsupported schema version.");
+    throw new TypeError("The pack manifest has an unsupported schema version.");
   }
 
   if (!Array.isArray(pack.tracks) || pack.tracks.length !== 8) {
-    throw new TypeError("A weekly pack must contain exactly eight tracks.");
+    throw new TypeError("A pack must contain exactly eight tracks.");
   }
 
   const ids = new Set();

@@ -88,11 +88,26 @@ body {
 }
 
 .install-logo {
-  width: auto;
-  height: clamp(92px, 25vh, 150px);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  width: min(86vw, 520px);
+  height: auto;
   max-width: min(86vw, 520px);
-  object-fit: contain;
+  color: var(--text);
   filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.48));
+  font-size: clamp(1.8rem, 8vh, 4.5rem);
+  line-height: 0.9;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.install-logo strong {
+  color: var(--orange);
+  font-size: 0.62em;
+  font-weight: 650;
+  letter-spacing: 0.16em;
 }
 
 .install-gate h1 {

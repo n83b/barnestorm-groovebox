@@ -4,6 +4,16 @@ import test from "node:test";
 
 const webDirectory = new URL("../web/", import.meta.url);
 
+test("shows the pack number without a scheduled-change countdown", async () => {
+  const app = await readFile(new URL("app.mjs", webDirectory), "utf8");
+  const markup = await readFile(new URL("index.html", webDirectory), "utf8");
+
+  assert.match(app, /elements\.packNumber\.textContent = `Pack \$\{pack\.week\}`/);
+  assert.match(markup, /id="packNumber">Pack —</);
+  assert.doesNotMatch(markup, /id="daysLeft"|days left|Changes today/i);
+  assert.doesNotMatch(app, /renderPackCountdown|getDaysRemaining|Changes today|days left/i);
+});
+
 test("knob drags use horizontal movement only", async () => {
   const app = await readFile(new URL("app.mjs", webDirectory), "utf8");
   const knobInteraction = app.slice(

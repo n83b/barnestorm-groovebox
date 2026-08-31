@@ -35,8 +35,7 @@ import { AudioEngine } from "./audio-engine.mjs?v=dev";
 import { loadDemoProject } from "./demo-projects.mjs?v=dev";
 import {
   IndexedDbPackRepository,
-  PackDelivery,
-  getDaysRemaining
+  PackDelivery
 } from "./pack-delivery.mjs?v=dev";
 import {
   exportPackToFile,
@@ -57,20 +56,22 @@ import {
 import { BASE_HEIGHT, BASE_WIDTH, calculateStageScale } from "./layout.mjs?v=dev";
 import { shouldAuditionStepEdit, shouldRenderStepGrid } from "./sequencer.mjs?v=dev";
 
-const LEGACY_STORAGE_KEY = "weekly-groovebox-project-v1";
-const ACTIVE_PACK_STORAGE_KEY = "weekly-groovebox-active-pack-v1";
-const PROJECT_STORAGE_PREFIX = "weekly-groovebox-project-v2:";
-const IMPORTED_PACK_STORAGE_KEY = "weekly-groovebox-imported-pack-v1";
+const LEGACY_STORAGE_KEY = "barnestorm-groovebox-project-v1";
+const ACTIVE_PACK_STORAGE_KEY = "barnestorm-groovebox-active-pack-v1";
+const PROJECT_STORAGE_PREFIX = "barnestorm-groovebox-project-v2:";
+const IMPORTED_PACK_STORAGE_KEY = "barnestorm-groovebox-imported-pack-v1";
 const PACK_POINTER_URL = "./assets/packs/current.json";
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const elements = {
   availabilityDot: document.querySelector("#availabilityDot"),
-  daysLeft: document.querySelector("#daysLeft"),
   globalControls: document.querySelector("#globalControls"),
   packCard: document.querySelector("#packCard"),
   packEditStatus: document.querySelector("#packEditStatus"),
   packName: document.querySelector("#packName"),
+  packNumber: document.querySelector("#packNumber"),
+  packStatus: document.querySelector("#packStatus"),
+  packStatusSeparator: document.querySelector("#packStatusSeparator"),
   packTransferClose: document.querySelector("#packTransferClose"),
   packTransferOverlay: document.querySelector("#packTransferOverlay"),
   packTransferStatus: document.querySelector("#packTransferStatus"),
@@ -88,7 +89,6 @@ const elements = {
   stepGrid: document.querySelector("#stepGrid"),
   stopButton: document.querySelector("#stopButton"),
   trackList: document.querySelector("#trackList"),
-  weekNumber: document.querySelector("#weekNumber"),
   groovebox: document.querySelector(".groovebox")
 };
 
@@ -105,7 +105,7 @@ let saveStatusTimer = null;
 let editSession = null;
 let modeSelectorOpen = false;
 let stageResizeFrame = null;
-let activePackSource = "weekly";
+let activePackSource = "default";
 let activePackDelivery = null;
 const audioEngine = new AudioEngine({ onStatusChange: handleAudioEngineStatus });
 const packRepository = new IndexedDbPackRepository();
@@ -116,7 +116,6 @@ const packDelivery = new PackDelivery({
 });
 
 updateStageScale();
-renderDateMetadata();
 renderGlobalControls();
 renderAll();
 bindTransport();
@@ -196,7 +195,7 @@ async function initializeAudio() {
   try {
     const result = await loadStartupPack();
     activePackDelivery = result.delivery;
-    activePackSource = result.imported ? "imported" : result.offline ? "offline" : "weekly";
+    activePackSource = result.imported ? "imported" : result.offline ? "offline" : "default";
     await activateProjectForPack(result.delivery.manifest);
     await audioEngine.loadPack(result.delivery);
     if (result.imported) updatePackStatus("imported", result.delivery);
@@ -221,12 +220,12 @@ async function loadStartupPack() {
         const delivery = await packRepository.get(importedPackId);
         if (delivery) return { delivery, offline: true, imported: true };
       } catch {
-        // Fall through to the normal weekly delivery path.
+        // Fall through to the bundled default-pack delivery path.
       }
       localStorage.removeItem(IMPORTED_PACK_STORAGE_KEY);
     }
   } catch {
-    // The weekly pack still loads when private browsing blocks local storage.
+    // The default pack still loads when private browsing blocks local storage.
   }
 
   return packDelivery.loadCurrent({ fallbackPackId: state.packId });
@@ -303,29 +302,25 @@ function updatePackStatus(status, detail) {
   elements.availabilityDot.classList.toggle("is-loading", isLoading);
   elements.availabilityDot.classList.toggle("is-error", status === "error");
   elements.availabilityDot.classList.toggle("is-offline", ["offline", "imported"].includes(status));
+  setPackStatus("");
 
   if (["ready", "offline", "imported"].includes(status) && pack?.tracks?.length === 8) {
-    elements.weekNumber.textContent = `Week ${pack.week}`;
+    elements.packNumber.textContent = `Pack ${pack.week}`;
     elements.packName.textContent = pack.name;
-    if (status === "imported") {
-      elements.daysLeft.textContent = "Imported pack";
-    } else {
-      renderPackCountdown(pack, status === "offline");
-    }
     elements.packCard.setAttribute(
       "aria-label",
-      `${status === "imported" ? "Imported" : status === "offline" ? "Saved" : "This week's"} sample pack, ${pack.name}, eight samples loaded`
+      `${status === "imported" ? "Imported" : status === "offline" ? "Saved" : "Active"} sample pack, pack ${pack.week}, ${pack.name}, eight samples loaded`
     );
   } else if (status === "downloading") {
-    elements.daysLeft.textContent = `Downloading ${detail?.completed ?? 0}/${detail?.total ?? 8}`;
-    elements.packCard.setAttribute("aria-label", `Weekly pack downloading, ${detail?.completed ?? 0} of ${detail?.total ?? 8} samples`);
+    setPackStatus(`Downloading ${detail?.completed ?? 0}/${detail?.total ?? 8}`);
+    elements.packCard.setAttribute("aria-label", `Pack downloading, ${detail?.completed ?? 0} of ${detail?.total ?? 8} samples`);
   } else if (isLoading) {
-    elements.packCard.setAttribute("aria-label", "This week's sample pack is loading");
+    elements.packCard.setAttribute("aria-label", "Sample pack is loading");
   } else if (status === "error") {
-    elements.daysLeft.textContent = "Connection required";
+    setPackStatus("Connection required");
     elements.packCard.setAttribute(
       "aria-label",
-      `This week's sample pack could not load: ${detail?.message ?? "unknown error"}`
+      `Sample pack could not load: ${detail?.message ?? "unknown error"}`
     );
   }
 }
@@ -338,27 +333,11 @@ function renderAll() {
   renderTransport();
 }
 
-function renderDateMetadata() {
-  const today = new Date();
-  const week = getIsoWeek(today);
-  const day = today.getDay();
-  const daysRemaining = day === 0 ? 0 : 7 - day;
-
-  elements.weekNumber.textContent = `Week ${week}`;
-  elements.daysLeft.textContent = daysRemaining === 1 ? "1 day left" : `${daysRemaining} days left`;
-}
-
-function renderPackCountdown(pack, offline) {
-  const daysRemaining = getDaysRemaining(pack.expiresAt);
-  if (offline && daysRemaining === 0) {
-    elements.daysLeft.textContent = "Saved offline";
-  } else if (daysRemaining == null) {
-    elements.daysLeft.textContent = offline ? "Saved offline" : "Downloaded";
-  } else if (daysRemaining === 0) {
-    elements.daysLeft.textContent = "Changes today";
-  } else {
-    elements.daysLeft.textContent = daysRemaining === 1 ? "1 day left" : `${daysRemaining} days left`;
-  }
+function setPackStatus(message) {
+  const hidden = message.length === 0;
+  elements.packStatus.textContent = message;
+  elements.packStatus.hidden = hidden;
+  elements.packStatusSeparator.hidden = hidden;
 }
 
 function bindPackTransfer() {
@@ -457,7 +436,7 @@ function bindPackTransfer() {
       } else if (directoryPickerAvailable) {
         setStatus("Choose where the new pack folder should be created.");
         const parentDirectory = await window.showDirectoryPicker({
-          id: "weekly-groovebox-save-pack",
+          id: "barnestorm-groovebox-save-pack",
           mode: "readwrite",
           startIn: "documents"
         });
@@ -491,9 +470,9 @@ function bindPackTransfer() {
     try {
       let imported;
       if (directoryPickerAvailable) {
-        setStatus("Choose a Weekly Groovebox pack folder.");
+        setStatus("Choose a Barnestörm Groovebox pack folder.");
         const directory = await window.showDirectoryPicker({
-          id: "weekly-groovebox-load-pack",
+          id: "barnestorm-groovebox-load-pack",
           mode: "read"
         });
         imported = await importPackFromDirectory(directory);
@@ -544,7 +523,7 @@ function canSharePackFile() {
   if (typeof File !== "function" || typeof navigator.share !== "function") return false;
   if (typeof navigator.canShare !== "function") return false;
 
-  const probe = new File(["{}"], "weekly-groovebox-pack.wgbpack.json", {
+  const probe = new File(["{}"], "barnestorm-groovebox-pack.wgbpack.json", {
     type: "application/json"
   });
   return navigator.canShare({ files: [probe] });
@@ -1701,14 +1680,6 @@ function bindShift() {
   });
 
   updateShift();
-}
-
-function getIsoWeek(date) {
-  const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const day = utcDate.getUTCDay() || 7;
-  utcDate.setUTCDate(utcDate.getUTCDate() + 4 - day);
-  const yearStart = new Date(Date.UTC(utcDate.getUTCFullYear(), 0, 1));
-  return Math.ceil(((utcDate - yearStart) / 86_400_000 + 1) / 7);
 }
 
 function clamp(value, minimum, maximum) {

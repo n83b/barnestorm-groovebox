@@ -1,8 +1,8 @@
-# Weekly Groovebox
+# Barnestörm Groovebox
 
 ## Vision
 
-Weekly Groovebox is a simple, eight-track sample-based groovebox inspired by compact hardware instruments.
+Barnestörm Groovebox is a simple, eight-track sample-based groovebox inspired by compact hardware instruments.
 
 Its purpose is to encourage creativity through limitation.
 
@@ -16,11 +16,11 @@ Every design and engineering decision should support speed, simplicity and music
 
 Most modern music software gives users unlimited sounds, unlimited tracks and endless options.
 
-Weekly Groovebox intentionally does the opposite.
+Barnestörm Groovebox intentionally does the opposite.
 
-Every user around the world receives exactly the same eight samples each week.
+Each pack gives the user exactly eight samples.
 
-Those eight samples become the user's complete sound palette for that week.
+Those eight samples become the user's complete sound palette until they choose to load another pack.
 
 Rather than searching through thousands of sounds, users are encouraged to explore how much music can be created from a very small collection of carefully chosen samples.
 
@@ -54,9 +54,9 @@ Users should spend their time making music, not configuring software.
 
 ---
 
-# Weekly Sample Packs
+# Sample Packs
 
-Every week a new sample pack becomes available.
+Barnestörm Groovebox ships with a default pack and supports portable pack save and load as the primary library workflow.
 
 Each pack contains exactly eight samples.
 
@@ -74,11 +74,7 @@ Each pack contains exactly eight samples.
 7. Chord
 8. Texture
 
-Every user receives the same pack.
-
-Projects created during that week continue referencing the pack they were created with, even after newer packs are released.
-
-Future versions may allow users to revisit previous packs through an archive, but this is not required for the MVP.
+Users can load any compatible pack file. The loaded pack remains active across launches until another pack is loaded, and projects continue referencing the immutable pack they were created with. Packs do not change on an automatic weekly schedule.
 
 ---
 
@@ -106,13 +102,13 @@ The entire application should feel like a dedicated musical instrument.
 
 The ideal workflow is:
 
-1. Open the app.
+1. Open the app or load a saved pack.
 2. Select a track.
 3. Program a rhythm or melody.
 4. Adjust the sound.
 5. Play.
 6. Jam.
-7. Export.
+7. Save or export.
 
 There should be as little friction as possible between opening the app and hearing music.
 
@@ -226,12 +222,12 @@ The long-term vision includes a shared creative community.
 
 Potential future features include:
 
-- Weekly challenges
+- Pack challenges
 - Track uploads
 - Community listening
 - Favourite tracks
 - Featured creators
-- Weekly highlights
+- Featured highlights
 - AI-generated or AI-curated sample packs
 
 These features are **not part of the MVP**.
@@ -242,7 +238,7 @@ The MVP focuses entirely on creating an enjoyable music-making experience.
 
 # AI Vision (Future)
 
-Future versions may use AI to generate or curate weekly sample packs automatically.
+Future versions may use AI to generate or curate downloadable sample packs.
 
 The AI should produce packs that are:
 
@@ -251,15 +247,15 @@ The AI should produce packs that are:
 - High quality
 - Musically useful
 
-The user should simply receive a new weekly pack without needing to understand how it was created.
+The user should be able to load a new pack without needing to understand how it was created.
 
 The AI should support creativity rather than becoming the focus of the product.
 
 ---
 
-# What Weekly Groovebox Is
+# What Barnestörm Groovebox Is
 
-Weekly Groovebox is:
+Barnestörm Groovebox is:
 
 - A groovebox
 - A musical instrument
@@ -270,9 +266,9 @@ Weekly Groovebox is:
 
 ---
 
-# What Weekly Groovebox Is Not
+# What Barnestörm Groovebox Is Not
 
-Weekly Groovebox is not:
+Barnestörm Groovebox is not:
 
 - A DAW
 - A workstation
@@ -300,4 +296,4 @@ Success should be measured by how quickly users can begin creating music and whe
 
 Whenever an implementation decision is unclear, optimise for this experience:
 
-> **A musician opens Weekly Groovebox, immediately understands how it works, starts making music within seconds, and discovers that having fewer choices actually makes the creative process more enjoyable.**
+> **A musician opens Barnestörm Groovebox, immediately understands how it works, starts making music within seconds, and discovers that having fewer choices actually makes the creative process more enjoyable.**

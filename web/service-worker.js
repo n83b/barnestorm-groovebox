@@ -1,4 +1,4 @@
-const SHELL_CACHE = "weekly-groovebox-shell-dev";
+const SHELL_CACHE = "barnestorm-groovebox-shell-dev";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -40,7 +40,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key.startsWith("weekly-groovebox-shell-") && key !== SHELL_CACHE)
+            .filter((key) => key.startsWith("barnestorm-groovebox-shell-") && key !== SHELL_CACHE)
             .map((key) => caches.delete(key))
         )
       )
