@@ -71,6 +71,13 @@ CC0 development samples. Regenerate them with:
 npm run generate:samples
 ```
 
+## Licence
+
+The source code and documentation in this repository are licensed under the
+[Mozilla Public License 2.0](LICENSE). Sample packs are separate assets and
+remain under the licence declared in their individual `manifest.json` files.
+No rights to the Barnestörm name or logo are granted by the software licence.
+
 ## Project map
 
 - `web/index.html` — semantic application shell
