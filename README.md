@@ -6,6 +6,9 @@ This repository contains the interactive web prototype, including its first
 Web Audio sample engine. It follows the approved UI in `ui/ui-mockup-final.png`
 and the behaviour defined in `docs/ui-interaction-spec.md`.
 
+## Use it here:
+https://n83b.github.io/barnestorm-groovebox/
+
 ## Run locally
 
 The prototype has no runtime dependencies and no build step:
