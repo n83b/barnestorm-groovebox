@@ -42,6 +42,9 @@ The command generates the manifest, calculates integrity metadata, assigns the
 next visible product pack number, updates the current-pack pointer and validates the result. See
 `docs/pack-publishing.md` for naming, metadata overrides and deployment.
 
+## TODO
+- Auto pack generator using an A.I audio model like Stable audio 3
+
 ## Implemented
 
 - Responsive, single-screen groovebox layout
